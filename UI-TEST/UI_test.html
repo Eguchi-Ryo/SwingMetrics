@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SwingMetrics AI - 解析詳細</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+
+  <!-- 上部ナビゲーションバー -->
+  <header class="bg-slate-800 border-b border-slate-700 px-6 py-3 flex justify-between items-center sticky top-0 z-50">
+    <div class="flex items-center gap-8">
+      <a href="dashboard.html" class="flex items-center gap-2">
+        <div class="bg-blue-600 text-white font-black px-2.5 py-1 rounded-lg tracking-wider text-sm">SM</div>
+        <span class="text-xl font-bold tracking-wide text-white">SwingMetrics <span class="text-blue-400">AI</span></span>
+      </a>
+      <nav class="hidden md:flex gap-6 text-sm font-medium">
+        <a href="dashboard.html" class="text-slate-400 hover:text-white transition">ダッシュボード</a>
+        <a href="analysis.html" class="text-blue-400 border-b-2 border-blue-400 pb-1">解析詳細</a>
+        <a href="upload.html" class="text-slate-400 hover:text-white transition">新規解析</a>
+        <a href="models.html" class="text-slate-400 hover:text-white transition">お手本ライブラリ</a>
+      </nav>
+    </div>
+    
+    <!-- DB: swings テーブルから取得する動画属性バッジ -->
+    <div class="flex items-center gap-3">
+      <span id="badgeSport" class="text-xs bg-blue-900/60 text-blue-300 border border-blue-700/50 px-2.5 py-1 rounded-md font-mono">Golf</span>
+      <span id="badgeAngle" class="text-xs bg-slate-700 text-slate-300 px-2.5 py-1 rounded-md border border-slate-600 font-mono">Side Angle</span>
+    </div>
+  </header>
+
+  <!-- メインコンテンツエリア -->
+  <main class="flex-1 p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-[1600px] w-full mx-auto">
+    
+    <!-- 左エリア：2画面動画・スケルトンプレイヤー (8/12) -->
+    <div class="lg:col-span-8 space-y-4">
+      
+      <!-- プレイヤーコンテナ -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-xl">
+        <div class="flex justify-between items-center mb-3">
+          <h1 id="swingTitle" class="text-base font-bold text-slate-100 flex items-center gap-2">
+            <span class="w-2.5 h-2.5 rounded-full bg-blue-500"></span> 7番アイアン前傾維持チェック
+          </h1>
+          <div class="flex gap-2">
+            <button id="toggleMeasureBtn" class="text-xs bg-slate-700 text-slate-300 border border-slate-600 px-3 py-1.5 rounded-md hover:bg-slate-600 transition">
+              手動角度計測: OFF
+            </button>
+            <a href="models.html" class="text-xs bg-blue-600/20 text-blue-400 border border-blue-500/30 px-3 py-1.5 rounded-md hover:bg-blue-600/30 transition">
+              お手本を変更
+            </a>
+          </div>
+        </div>
+
+        <!-- 2画面 動画表示エリア -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-black rounded-lg overflow-hidden border border-slate-700 aspect-video relative">
+          
+          <!-- 自分のスイング（ターゲット動画） -->
+          <div class="relative bg-slate-950 flex items-center justify-center border-r border-slate-800 overflow-hidden">
+            <div class="text-center z-10 p-4">
+              <div class="text-xs text-blue-400 font-mono mb-1">[TARGET SWING]</div>
+              <p class="text-slate-400 text-xs">YOLOv8 骨格描画 overlay</p>
+              
+              <!-- DB (swing_frames.frames_json) から反映されるリアルタイム角度 -->
+              <div class="mt-4 inline-block bg-black/70 backdrop-blur-md border border-blue-500/40 text-blue-300 font-mono text-xs px-3 py-1.5 rounded-md">
+                Spine Angle: <span id="currentSpineAngle" class="text-yellow-400 font-bold">38.2°</span>
+              </div>
+            </div>
+            <span class="absolute top-3 left-3 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">MY SWING</span>
+          </div>
+
+          <!-- お手本スイング（users.selected_benchmark_id で指定されたモデル） -->
+          <div class="relative bg-slate-950 flex items-center justify-center overflow-hidden">
+            <div class="text-center z-10 p-4">
+              <!-- DB: benchmark_models.name から取得するモデル名 -->
+              <div id="benchmarkName" class="text-xs text-emerald-400 font-mono mb-1">[絶好調時の7番アイアン]</div>
+              <p class="text-slate-400 text-xs">比較用 マイお手本データ</p>
+
+              <div class="mt-4 inline-block bg-black/70 backdrop-blur-md border border-emerald-500/40 text-emerald-300 font-mono text-xs px-3 py-1.5 rounded-md">
+                Target Angle: <span id="benchmarkSpineAngle" class="text-emerald-400 font-bold">41.5°</span>
+              </div>
+            </div>
+            <span class="absolute top-3 left-3 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">BENCHMARK</span>
+          </div>
+
+        </div>
+
+        <!-- 再生コントロールバー -->
+        <div class="mt-4 space-y-3">
+          <div class="flex items-center gap-3">
+            <span id="currentTimeText" class="text-xs font-mono text-slate-400">00:01.4 (Frame: 42)</span>
+            <input id="seekBar" type="range" class="flex-1 h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-blue-500" value="42" min="0" max="100">
+            <span id="totalTimeText" class="text-xs font-mono text-slate-400">00:03.0</span>
+          </div>
+
+          <div class="flex justify-between items-center text-xs">
+            <div class="flex items-center gap-2">
+              <button class="bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-bold">再生 / 停止</button>
+              <button class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-2 rounded-lg">◀ コマ戻し</button>
+              <button class="bg-slate-700 hover:bg-slate-600 text-slate-200 px-3 py-2 rounded-lg">コマ送り ▶</button>
+              <label class="flex items-center gap-1.5 text-slate-300 ml-2 cursor-pointer">
+                <input type="checkbox" checked class="rounded accent-blue-500"> 2画面同期連動
+              </label>
+            </div>
+            <div class="flex gap-1.5 font-mono">
+              <button class="bg-slate-700 text-slate-300 px-2.5 py-1 rounded">1.0x</button>
+              <button class="bg-blue-600 text-white px-2.5 py-1 rounded font-bold">0.5x</button>
+              <button class="bg-slate-700 text-slate-300 px-2.5 py-1 rounded">0.25x</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 時系列アングル推移グラフ（Chart.js） -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-xl">
+        <div class="flex justify-between items-center mb-3">
+          <h2 class="text-xs font-semibold text-slate-300">時系列 前傾角度 推移 (フレーム別連動)</h2>
+          <span class="text-[11px] text-slate-400">※グラフの点をクリックすると該当コマへジャンプ</span>
+        </div>
+        <div class="h-44 w-full">
+          <canvas id="swingChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 右エリア：計測数値 & スコア (4/12) -->
+    <div class="lg:col-span-4 space-y-4">
+      
+      <!-- 総合スコアカード (swings.overall_score) -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-xl text-center">
+        <span class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Overall Swing Score</span>
+        <div class="my-2 flex justify-center items-baseline gap-1">
+          <span id="overallScore" class="text-6xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">82</span>
+          <span class="text-slate-400 font-bold">/ 100</span>
+        </div>
+        <p class="text-xs text-slate-400">お手本比較の一致度および前傾維持率に基づく算出</p>
+      </div>
+
+      <!-- インパクト時 計測結果リスト (幾何学数値のみ) -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-xl space-y-3">
+        <h2 class="text-xs font-bold text-slate-300 border-b border-slate-700 pb-2 uppercase tracking-wider">
+          インパクト時 主要幾何学データ
+        </h2>
+        
+        <!-- データ 1: 体幹前傾角 -->
+        <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/60 flex justify-between items-center">
+          <div>
+            <div class="text-xs text-slate-400">体幹・前傾角度 (Spine)</div>
+            <div class="text-sm font-bold text-slate-100 mt-0.5">
+              38.2° <span class="text-[11px] text-emerald-400 font-normal">(お手本: 41.5°)</span>
+            </div>
+          </div>
+          <span class="bg-yellow-500/20 text-yellow-300 border border-yellow-500/30 text-[11px] px-2 py-0.5 rounded font-mono font-medium">差: -3.3°</span>
+        </div>
+
+        <!-- データ 2: 軸ブレ幅 -->
+        <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/60 flex justify-between items-center">
+          <div>
+            <div class="text-xs text-slate-400">軸ブレ幅 (Head Shift X)</div>
+            <div class="text-sm font-bold text-slate-100 mt-0.5">
+              +1.8 cm <span class="text-[11px] text-emerald-400 font-normal">(お手本: +1.2cm)</span>
+            </div>
+          </div>
+          <span class="bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-[11px] px-2 py-0.5 rounded font-mono font-medium">良好</span>
+        </div>
+
+        <!-- データ 3: 捻転差 -->
+        <div class="bg-slate-900/80 p-3 rounded-lg border border-slate-700/60 flex justify-between items-center">
+          <div>
+            <div class="text-xs text-slate-400">腰の回転角 (Hip Rotation)</div>
+            <div class="text-sm font-bold text-slate-100 mt-0.5">
+              32.5° <span class="text-[11px] text-emerald-400 font-normal">(お手本: 40.0°)</span>
+            </div>
+          </div>
+          <span class="bg-red-500/20 text-red-300 border border-red-500/30 text-[11px] px-2 py-0.5 rounded font-mono font-medium">差: -7.5°</span>
+        </div>
+
+      </div>
+
+      <!-- 手動計測時の座標ログ（任意計測モード用領域） -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-4 shadow-xl">
+        <h2 class="text-xs font-bold text-slate-300 mb-2">手動ポイント計測 ログ</h2>
+        <div id="manualLog" class="text-xs text-slate-400 bg-slate-950 p-3 rounded-lg border border-slate-800 font-mono space-y-1">
+          <p>※[手動角度計測: ON] 時、動画上の関節を3点選択すると角度が表示されます。</p>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    // 時系列データグラフ（DB: swing_frames.frames_json から取得した数値をプロット）
+    const ctx = document.getElementById('swingChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['アドレス', 'テイクバック', 'トップ', 'ダウンスイング', 'インパクト', 'フォロー'],
+        datasets: [
+          {
+            label: 'ターゲット動画 (°)',
+            data: [42.0, 41.5, 40.0, 36.0, 38.2, 45.0],
+            borderColor: '#3b82f6',
+            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            fill: true,
+            tension: 0.3
+          },
+          {
+            label: '選択中お手本 (°)',
+            data: [42.5, 42.0, 41.5, 40.5, 41.5, 46.0],
+            borderColor: '#10b981',
+            borderDash: [4, 4],
+            tension: 0.3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { labels: { color: '#94a3b8', font: { size: 10 } } }
+        },
+        scales: {
+          x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#334155' } },
+          y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#334155' }, min: 30, max: 50 }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

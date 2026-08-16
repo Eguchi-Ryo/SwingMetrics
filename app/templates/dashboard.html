@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}SwingMetrics AI - ダッシュボード{% endblock %}
+
+{% block content %}
+  <main class="page-main">
+    <div class="page-header">
+      <div>
+        <h1>ダッシュボード</h1>
+        <p>直近のスイング改善傾向と解析履歴を確認できます。</p>
+      </div>
+      <a class="primary-btn" href="{{ url_for('main.upload') }}">+ 新しく解析する</a>
+    </div>
+
+    <section class="layout-grid">
+      <article class="panel">
+        <h2>アクティビティ概要</h2>
+        <div class="metric-grid">
+          <div class="metric-card">
+            <span>総解析本数</span>
+            <strong>{{ summary.total }} <em>本</em></strong>
+          </div>
+          <div class="metric-card">
+            <span>平均スコア</span>
+            <strong>{{ summary.average }} <em>pt</em></strong>
+          </div>
+        </div>
+        <div class="panel inner-panel">
+          <h2>近月の成果</h2>
+          <p>{{ trend_text }}</p>
+        </div>
+      </article>
+
+      <article class="panel">
+        <h2>前傾角度スコア 推移 (過去10回)</h2>
+        <div class="chart-box">
+          <canvas id="historyChart"></canvas>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel history-panel">
+      <div class="page-header">
+        <h2>解析履歴一覧</h2>
+        <a class="secondary-btn" href="{{ url_for('main.upload') }}">新規解析</a>
+      </div>
+
+      <div class="history-grid">
+        {% for item in history %}
+          <a href="{{ url_for('main.analysis') }}" class="card" aria-label="{{ item.title }}">
+            <div class="card-media">
+              <span class="card-badge">{{ item.sport }}</span>
+              <span class="score-badge">Score {{ item.score }}</span>
+              [THUMBNAIL VIDEO]
+            </div>
+            <div class="card-body">
+              <h3>{{ item.title }}</h3>
+              <div class="card-footer">
+                <span>{{ item.timestamp }}</span>
+                <span>{{ item.angle }}</span>
+              </div>
+            </div>
+          </a>
+        {% endfor %}
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const chartData = {{ chart_config | tojson }};
+    const ctx = document.getElementById('historyChart');
+    if (ctx) {
+      new Chart(ctx, {
+        type: 'line',
+        data: chartData,
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: {
+              ticks: { color: '#94a3b8', font: { size: 10 } },
+              grid: { color: '#334155' }
+            },
+            y: {
+              ticks: { color: '#94a3b8', font: { size: 10 } },
+              grid: { color: '#334155' }
+            }
+          }
+        }
+      });
+    }
+  </script>
+{% endblock %}

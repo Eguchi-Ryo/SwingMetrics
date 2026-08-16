@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SwingMetrics AI - ダッシュボード</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+
+  <!-- ヘッダー -->
+  <header class="bg-slate-800 border-b border-slate-700 px-6 py-3 flex justify-between items-center sticky top-0 z-50">
+    <div class="flex items-center gap-8">
+      <div class="flex items-center gap-2">
+        <div class="bg-blue-600 text-white font-black px-2.5 py-1 rounded-lg tracking-wider text-sm">SM</div>
+        <span class="text-xl font-bold tracking-wide text-white">SwingMetrics <span class="text-blue-400">AI</span></span>
+      </div>
+      <nav class="hidden md:flex gap-6 text-sm font-medium">
+        <a href="dashboard.html" class="text-blue-400 border-b-2 border-blue-400 pb-1">ダッシュボード</a>
+        <a href="upload.html" class="text-slate-400 hover:text-white transition">新規解析</a>
+        <a href="models.html" class="text-slate-400 hover:text-white transition">お手本ライブラリ</a>
+      </nav>
+    </div>
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center font-bold text-sm">R</div>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="flex-1 p-6 max-w-[1400px] w-full mx-auto space-y-6">
+    
+    <!-- 概要サマリー ＆ 上達トラッキンググラフ -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      
+      <!-- スタッツサマリー -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 space-y-4 shadow-xl">
+        <h2 class="text-sm font-semibold text-slate-300">アクティビティ概要</h2>
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-slate-900/80 p-3.5 rounded-lg border border-slate-700/50">
+            <span class="text-xs text-slate-400">総解析本数</span>
+            <div class="text-2xl font-extrabold text-white mt-1">24 <span class="text-xs font-normal text-slate-400">本</span></div>
+          </div>
+          <div class="bg-slate-900/80 p-3.5 rounded-lg border border-slate-700/50">
+            <span class="text-xs text-slate-400">平均スコア</span>
+            <div class="text-2xl font-extrabold text-blue-400 mt-1">79.5 <span class="text-xs font-normal text-slate-400">pt</span></div>
+          </div>
+        </div>
+        <div class="bg-blue-950/40 border border-blue-800/40 p-3.5 rounded-lg">
+          <div class="text-xs text-blue-300 font-semibold mb-1">直近1ヶ月の成果</div>
+          <p class="text-xs text-slate-300 leading-relaxed">
+            前傾角度の平均ブレ幅が <strong class="text-emerald-400">-1.8° 改善</strong> しています。インパクトでの起き上がり頻度が減少傾向にあります。
+          </p>
+        </div>
+      </div>
+
+      <!-- トラッキンググラフ -->
+      <div class="lg:col-span-2 bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-xl flex flex-col justify-between">
+        <div class="flex justify-between items-center mb-2">
+          <h2 class="text-sm font-semibold text-slate-300">前傾角度スコア 推移 (過去10回)</h2>
+          <span class="text-xs text-slate-400">目標値: 42.0°</span>
+        </div>
+        <div class="h-44 w-full">
+          <canvas id="historyChart"></canvas>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 過去解析履歴テーブル/カード -->
+    <div class="bg-slate-800 border border-slate-700 rounded-xl p-5 shadow-xl space-y-4">
+      <div class="flex justify-between items-center">
+        <h2 class="text-base font-bold text-slate-100">解析履歴一覧</h2>
+        <a href="upload.html" class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition">+ 新しく解析する</a>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        
+        <!-- 履歴カード 1 -->
+        <a href="analysis.html" class="bg-slate-900 border border-slate-700/80 rounded-xl overflow-hidden hover:border-blue-500 transition group">
+          <div class="h-36 bg-slate-950 flex items-center justify-center relative border-b border-slate-800">
+            <span class="text-xs text-slate-500 font-mono">[THUMBNAIL VIDEO]</span>
+            <span class="absolute top-2.5 left-2.5 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">Golf</span>
+            <span class="absolute bottom-2.5 right-2.5 bg-black/70 text-yellow-400 font-bold text-xs px-2 py-0.5 rounded border border-yellow-500/30">Score 82</span>
+          </div>
+          <div class="p-4 space-y-2">
+            <h3 class="text-sm font-bold text-slate-200 group-hover:text-blue-400 transition">7番アイアン 前傾維持チェック</h3>
+            <div class="flex justify-between text-xs text-slate-400">
+              <span>2026/08/10 14:30</span>
+              <span>真横アングル</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- 履歴カード 2 -->
+        <a href="analysis.html" class="bg-slate-900 border border-slate-700/80 rounded-xl overflow-hidden hover:border-blue-500 transition group">
+          <div class="h-36 bg-slate-950 flex items-center justify-center relative border-b border-slate-800">
+            <span class="text-xs text-slate-500 font-mono">[THUMBNAIL VIDEO]</span>
+            <span class="absolute top-2.5 left-2.5 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">Baseball</span>
+            <span class="absolute bottom-2.5 right-2.5 bg-black/70 text-emerald-400 font-bold text-xs px-2 py-0.5 rounded border border-emerald-500/30">Score 88</span>
+          </div>
+          <div class="p-4 space-y-2">
+            <h3 class="text-sm font-bold text-slate-200 group-hover:text-blue-400 transition">フリーバッティング 踏み込み足角度</h3>
+            <div class="flex justify-between text-xs text-slate-400">
+              <span>2026/08/05 11:15</span>
+              <span>正面アングル</span>
+            </div>
+          </div>
+        </a>
+
+        <!-- 履歴カード 3 -->
+        <a href="analysis.html" class="bg-slate-900 border border-slate-700/80 rounded-xl overflow-hidden hover:border-blue-500 transition group">
+          <div class="h-36 bg-slate-950 flex items-center justify-center relative border-b border-slate-800">
+            <span class="text-xs text-slate-500 font-mono">[THUMBNAIL VIDEO]</span>
+            <span class="absolute top-2.5 left-2.5 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">Golf</span>
+            <span class="absolute bottom-2.5 right-2.5 bg-black/70 text-slate-300 font-bold text-xs px-2 py-0.5 rounded border border-slate-600">Score 75</span>
+          </div>
+          <div class="p-4 space-y-2">
+            <h3 class="text-sm font-bold text-slate-200 group-hover:text-blue-400 transition">ドライバー 軸ブレ測定</h3>
+            <div class="flex justify-between text-xs text-slate-400">
+              <span>2026/07/28 16:00</span>
+              <span>後方アングル</span>
+            </div>
+          </div>
+        </a>
+
+      </div>
+    </div>
+
+  </main>
+
+  <script>
+    const ctx = document.getElementById('historyChart').getContext('2d');
+    new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: ['7/1', '7/5', '7/10', '7/15', '7/20', '7/25', '7/28', '8/1', '8/5', '8/10'],
+        datasets: [{
+          label: 'インパクト前傾角度 (°)',
+          data: [32, 33, 31, 35, 34, 36, 35, 37, 37.5, 38.2],
+          borderColor: '#3b82f6',
+          backgroundColor: 'rgba(59, 130, 246, 0.1)',
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#334155' } },
+          y: { ticks: { color: '#64748b', font: { size: 10 } }, grid: { color: '#334155' }, min: 25, max: 45 }
+        }
+      }
+    });
+  </script>
+</body>
+</html>

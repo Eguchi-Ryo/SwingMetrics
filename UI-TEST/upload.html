@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SwingMetrics AI - 新規動画解析</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+
+  <!-- ヘッダー -->
+  <header class="bg-slate-800 border-b border-slate-700 px-6 py-3 flex justify-between items-center sticky top-0 z-50">
+    <div class="flex items-center gap-8">
+      <div class="flex items-center gap-2">
+        <div class="bg-blue-600 text-white font-black px-2.5 py-1 rounded-lg tracking-wider text-sm">SM</div>
+        <span class="text-xl font-bold tracking-wide text-white">SwingMetrics <span class="text-blue-400">AI</span></span>
+      </div>
+      <nav class="hidden md:flex gap-6 text-sm font-medium">
+        <a href="dashboard.html" class="text-slate-400 hover:text-white transition">ダッシュボード</a>
+        <a href="upload.html" class="text-blue-400 border-b-2 border-blue-400 pb-1">新規解析</a>
+        <a href="models.html" class="text-slate-400 hover:text-white transition">お手本ライブラリ</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="flex-1 p-6 max-w-[800px] w-full mx-auto flex flex-col justify-center">
+    
+    <div class="bg-slate-800 border border-slate-700 rounded-xl p-6 shadow-2xl space-y-6">
+      
+      <div>
+        <h1 class="text-xl font-bold text-white">スイング動画のアップロード &amp; 解析設定</h1>
+        <p class="text-xs text-slate-400 mt-1">解析したい動画を選択し、設定を入力してください。（推奨: 3〜10秒程度のMP4動画）</p>
+      </div>
+
+      <!-- 動画アップロードエリア（ドラッグ＆ドロップ） -->
+      <div class="border-2 border-dashed border-slate-600 hover:border-blue-500 bg-slate-900/50 rounded-xl p-8 text-center cursor-pointer transition flex flex-col items-center justify-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-blue-600/20 text-blue-400 flex items-center justify-center font-bold text-xl">↑</div>
+        <div>
+          <p class="text-sm font-semibold text-slate-200">動画ファイルをドラッグ＆ドロップ</p>
+          <p class="text-xs text-slate-500 mt-0.5">または PCからファイルを選択 (MP4, MOV / 最大 100MB)</p>
+        </div>
+        <input type="file" class="hidden" accept="video/*">
+      </div>
+
+      <!-- パラメータ設定フォーム -->
+      <div class="space-y-4 text-xs">
+        
+        <div>
+          <label class="block font-semibold text-slate-300 mb-1">解析タイトル</label>
+          <input type="text" placeholder="例: 7番アイアン 前傾維持チェック" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">対象スポーツ</label>
+            <select class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
+              <option value="golf">ゴルフ (Golf)</option>
+              <option value="baseball">野球 (Baseball)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-semibold text-slate-300 mb-1">撮影画角 (アングル)</label>
+            <select class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2.5 text-slate-200 focus:outline-none focus:border-blue-500">
+              <option value="side">真横 (サイド)</option>
+              <option value="front">正面 (フロント)</option>
+              <option value="rear">後方 (リア)</option>
+            </select>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 実行ボタン -->
+      <button onclick="location.href='analysis.html'" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-bold py-3 rounded-lg text-sm transition shadow-lg shadow-blue-600/30">
+        AI解析を開始する (YOLO-Pose)
+      </button>
+
+    </div>
+
+  </main>
+</body>
+</html>

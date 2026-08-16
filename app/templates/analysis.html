@@ -1,0 +1,394 @@
+{% extends 'base.html' %}
+
+{% block title %}SwingMetrics AI - 解析詳細{% endblock %}
+
+{% block content %}
+  <main class="page-main">
+    <!-- ヘッダー -->
+    <div class="analysis-header">
+      <div>
+        <h1>{{ analysis.title }}</h1>
+        <div class="badge-row">
+          <span class="badge blue">{{ analysis.sport }}</span>
+          <span class="badge green">{{ analysis.angle }}</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <span id="badgeSport" class="badge blue">{{ analysis.sport }}</span>
+        <span id="badgeAngle" class="badge gray">{{ analysis.angle }}</span>
+      </div>
+    </div>
+
+    <!-- メインレイアウト -->
+    <div class="analysis-container">
+      <!-- 左側：ビデオプレイヤーと時系列グラフ -->
+      <section class="analysis-left">
+        
+        <!-- ビデオプレイヤーコンテナ -->
+        <div class="video-player-container">
+          <div class="video-player-header">
+            <h2>スイング動画 2画面比較</h2>
+            <div class="player-controls-top">
+              <button class="btn-small" id="toggleMeasureBtn">手動角度計測: OFF</button>
+              <a href="{{ url_for('main.models') }}" class="btn-small btn-blue">お手本を変更</a>
+            </div>
+          </div>
+
+          <!-- 2画面プレイヤー -->
+          <div class="video-grid-container">
+            <div class="video-frame">
+              <div class="video-label">MY SWING</div>
+              <div class="video-placeholder">
+                <p class="text-mono">[ YOLOv8 骨格描画 ]</p>
+                <div class="angle-display" id="currentAngleDisplay">
+                  <span class="label">Spine Angle:</span>
+                  <span class="value" id="currentAngle">{{ analysis.current_angle }}°</span>
+                </div>
+              </div>
+            </div>
+            <div class="video-frame">
+              <div class="video-label">BENCHMARK</div>
+              <div class="video-placeholder">
+                <p class="text-mono">[ {{ analysis.benchmark_name }} ]</p>
+                <div class="angle-display" id="benchmarkAngleDisplay">
+                  <span class="label">Target Angle:</span>
+                  <span class="value" id="benchmarkAngle">{{ analysis.target_angle }}°</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 再生コントロール -->
+          <div class="playback-controls">
+            <div class="timeline-row">
+              <span class="time-text" id="currentTimeText">00:00.0</span>
+              <input type="range" class="seek-bar" id="seekBar" min="0" max="100" value="0">
+              <span class="time-text" id="totalTimeText">00:00.0</span>
+            </div>
+
+            <div class="controls-row">
+              <div class="control-group">
+                <button class="btn btn-primary" id="playPauseBtn">▶ 再生</button>
+                <button class="btn" id="frameBackBtn">◀ コマ戻し</button>
+                <button class="btn" id="frameForwardBtn">コマ送り ▶</button>
+                <label class="sync-checkbox">
+                  <input type="checkbox" id="syncCheckbox" checked>
+                  <span>2画面同期連動</span>
+                </label>
+              </div>
+              <div class="speed-controls">
+                <button class="speed-btn" data-speed="0.25">0.25x</button>
+                <button class="speed-btn" data-speed="0.5">0.5x</button>
+                <button class="speed-btn active" data-speed="1.0">1.0x</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 時系列グラフ -->
+        <div class="chart-container">
+          <div class="chart-header">
+            <h2>時系列 前傾角度 推移 (フレーム別連動)</h2>
+            <span class="chart-note">※グラフの点をクリックすると該当コマへジャンプ</span>
+          </div>
+          <canvas id="swingChart"></canvas>
+        </div>
+
+      </section>
+
+      <!-- 右側：スコアと詳細計測数値 -->
+      <aside class="analysis-right">
+        
+        <!-- 総合スコア -->
+        <div class="score-card">
+          <h2>Overall Swing Score</h2>
+          <div class="score-display">
+            <span class="score-number">{{ analysis.overall_score }}</span>
+            <span class="score-max">/ 100</span>
+          </div>
+          <p class="score-note">お手本比較の一致度および前傾維持率に基づく算出</p>
+        </div>
+
+        <!-- 計測数値リスト -->
+        <div class="metrics-card">
+          <h2>インパクト時 主要幾何学データ</h2>
+          <ul class="metrics-list">
+            {% for metric in analysis.metrics %}
+              <li class="metric-item">
+                <div>
+                  <span class="metric-label">{{ metric.label }}</span>
+                  <div class="metric-value">
+                    {{ metric.value }}
+                    <span class="metric-benchmark">(お手本: {{ metric.benchmark }})</span>
+                  </div>
+                </div>
+                <span class="metric-diff">
+                  {% if metric.label == "軸ブレ幅" %}
+                    <span class="diff-badge diff-good">良好</span>
+                  {% else %}
+                    <span class="diff-badge diff-low">差: 確認中</span>
+                  {% endif %}
+                </span>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+
+        <!-- 手動計測ログ -->
+        <div class="log-card">
+          <h2>手動ポイント計測 ログ</h2>
+          <div id="manualLog" class="log-content">
+            <p>※[手動角度計測: ON] 時、動画上の関節を3点選択すると角度が表示されます。</p>
+          </div>
+        </div>
+
+      </aside>
+
+    </div>
+  </main>
+
+  <script>
+    // ===============================
+    // データ初期化
+    // ===============================
+    const analysisData = {
+      id: "{{ analysis.id }}",
+      title: "{{ analysis.title }}",
+      duration_ms: {{ analysis.duration_ms }},
+      frames: {{ analysis.frames|tojson }},
+      current_angle: {{ analysis.current_angle }},
+      target_angle: {{ analysis.target_angle }},
+      overall_score: {{ analysis.overall_score }},
+    };
+
+    // 状態管理
+    let playerState = {
+      isPlaying: false,
+      currentFrame: 0,
+      currentSpeed: 1.0,
+      isSynced: true,
+      frameInterval: null,
+    };
+
+    // ===============================
+    // ユーティリティ関数
+    // ===============================
+    function msToTimeString(ms) {
+      const totalSeconds = Math.floor(ms / 1000);
+      const minutes = Math.floor(totalSeconds / 60);
+      const seconds = totalSeconds % 60;
+      const centiseconds = Math.floor((ms % 1000) / 10);
+      return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(Math.floor(centiseconds / 10)).padStart(1, '0')}`;
+    }
+
+    function getInterpolatedFrame(frameIndex) {
+      const frames = analysisData.frames;
+      if (frameIndex < 0) return frames[0];
+      if (frameIndex >= frames.length) return frames[frames.length - 1];
+      
+      const lowerIdx = Math.floor(frameIndex);
+      const upperIdx = Math.ceil(frameIndex);
+      
+      if (lowerIdx === upperIdx) return frames[lowerIdx];
+      
+      const lowerFrame = frames[lowerIdx];
+      const upperFrame = frames[upperIdx];
+      const t = frameIndex - lowerIdx;
+      
+      return {
+        ...lowerFrame,
+        spine_angle: lowerFrame.spine_angle + (upperFrame.spine_angle - lowerFrame.spine_angle) * t,
+        head_shift_x: lowerFrame.head_shift_x + (upperFrame.head_shift_x - lowerFrame.head_shift_x) * t,
+        hip_rotation: lowerFrame.hip_rotation + (upperFrame.hip_rotation - lowerFrame.hip_rotation) * t,
+        shoulder_rotation: lowerFrame.shoulder_rotation + (upperFrame.shoulder_rotation - lowerFrame.shoulder_rotation) * t,
+      };
+    }
+
+    function updateDisplayValues(frameIndex) {
+      const frame = getInterpolatedFrame(frameIndex);
+      document.getElementById('currentAngle').textContent = frame.spine_angle.toFixed(1) + '°';
+      document.getElementById('benchmarkAngle').textContent = analysisData.target_angle.toFixed(1) + '°';
+      
+      const timeMs = (frameIndex / analysisData.frames.length) * analysisData.duration_ms;
+      document.getElementById('currentTimeText').textContent = msToTimeString(timeMs);
+    }
+
+    function updateSeekBar(frameIndex) {
+      const maxFrames = analysisData.frames.length - 1;
+      const percentage = (frameIndex / maxFrames) * 100;
+      document.getElementById('seekBar').value = percentage;
+    }
+
+    // ===============================
+    // 再生制御
+    // ===============================
+    function togglePlayPause() {
+      playerState.isPlaying = !playerState.isPlaying;
+      const btn = document.getElementById('playPauseBtn');
+      
+      if (playerState.isPlaying) {
+        btn.textContent = '⏸ 停止';
+        btn.classList.add('playing');
+        startPlayback();
+      } else {
+        btn.textContent = '▶ 再生';
+        btn.classList.remove('playing');
+        stopPlayback();
+      }
+    }
+
+    function startPlayback() {
+      const frameDuration = analysisData.duration_ms / analysisData.frames.length;
+      const adjustedFrameDuration = frameDuration / playerState.currentSpeed;
+      
+      playerState.frameInterval = setInterval(() => {
+        playerState.currentFrame += 1;
+        
+        if (playerState.currentFrame >= analysisData.frames.length - 1) {
+          playerState.currentFrame = analysisData.frames.length - 1;
+          stopPlayback();
+          document.getElementById('playPauseBtn').textContent = '▶ 再生';
+          document.getElementById('playPauseBtn').classList.remove('playing');
+        }
+        
+        updateDisplayValues(playerState.currentFrame);
+        updateSeekBar(playerState.currentFrame);
+      }, adjustedFrameDuration);
+    }
+
+    function stopPlayback() {
+      if (playerState.frameInterval) {
+        clearInterval(playerState.frameInterval);
+        playerState.frameInterval = null;
+      }
+    }
+
+    function frameStep(direction) {
+      stopPlayback();
+      playerState.isPlaying = false;
+      document.getElementById('playPauseBtn').textContent = '▶ 再生';
+      document.getElementById('playPauseBtn').classList.remove('playing');
+      
+      playerState.currentFrame += direction;
+      playerState.currentFrame = Math.max(0, Math.min(playerState.currentFrame, analysisData.frames.length - 1));
+      
+      updateDisplayValues(playerState.currentFrame);
+      updateSeekBar(playerState.currentFrame);
+    }
+
+    // ===============================
+    // イベントリスナー
+    // ===============================
+    document.getElementById('playPauseBtn').addEventListener('click', togglePlayPause);
+    document.getElementById('frameBackBtn').addEventListener('click', () => frameStep(-5));
+    document.getElementById('frameForwardBtn').addEventListener('click', () => frameStep(5));
+    
+    document.getElementById('seekBar').addEventListener('input', (e) => {
+      stopPlayback();
+      playerState.isPlaying = false;
+      document.getElementById('playPauseBtn').textContent = '▶ 再生';
+      document.getElementById('playPauseBtn').classList.remove('playing');
+      
+      const percentage = parseFloat(e.target.value);
+      const maxFrames = analysisData.frames.length - 1;
+      playerState.currentFrame = (percentage / 100) * maxFrames;
+      
+      updateDisplayValues(playerState.currentFrame);
+    });
+
+    document.querySelectorAll('.speed-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
+        e.target.classList.add('active');
+        playerState.currentSpeed = parseFloat(e.target.dataset.speed);
+      });
+    });
+
+    document.getElementById('syncCheckbox').addEventListener('change', (e) => {
+      playerState.isSynced = e.target.checked;
+    });
+
+    document.getElementById('toggleMeasureBtn').addEventListener('click', (e) => {
+      const isOn = e.target.textContent.includes('OFF');
+      e.target.textContent = isOn ? '手動角度計測: ON' : '手動角度計測: OFF';
+    });
+
+    // ===============================
+    // グラフの初期化
+    // ===============================
+    function initChart() {
+      const ctx = document.getElementById('swingChart').getContext('2d');
+      const frameLabels = analysisData.frames.map((f, i) => `${i}`);
+      const spinAngles = analysisData.frames.map(f => f.spine_angle);
+      const benchmarkLine = Array(analysisData.frames.length).fill(analysisData.target_angle);
+      
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: frameLabels,
+          datasets: [
+            {
+              label: '前傾角度 (自分)',
+              data: spinAngles,
+              borderColor: '#60a5fa',
+              backgroundColor: 'rgba(96, 165, 250, 0.12)',
+              fill: true,
+              tension: 0.35,
+              borderWidth: 2,
+              pointRadius: 2,
+              pointHoverRadius: 6,
+              pointBackgroundColor: '#60a5fa',
+            },
+            {
+              label: '比較基準',
+              data: benchmarkLine,
+              borderColor: '#34d399',
+              backgroundColor: 'rgba(52, 211, 153, 0.08)',
+              tension: 0.3,
+              borderWidth: 2,
+              pointRadius: 0,
+              borderDash: [5, 5],
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          plugins: {
+            legend: {
+              labels: {
+                color: '#cbd5e1',
+                font: { size: 10 }
+              }
+            }
+          },
+          scales: {
+            x: {
+              ticks: { color: '#94a3b8', font: { size: 9 } },
+              grid: { color: '#334155' }
+            },
+            y: {
+              ticks: { color: '#94a3b8', font: { size: 9 } },
+              grid: { color: '#334155' }
+            }
+          },
+          onClick: (event, elements) => {
+            if (elements.length > 0) {
+              const index = elements[0].index;
+              playerState.currentFrame = index;
+              updateDisplayValues(playerState.currentFrame);
+              updateSeekBar(playerState.currentFrame);
+            }
+          }
+        }
+      });
+    }
+
+    // ===============================
+    // 初期化
+    // ===============================
+    document.getElementById('totalTimeText').textContent = msToTimeString(analysisData.duration_ms);
+    updateDisplayValues(0);
+    initChart();
+  </script>
+{% endblock %}

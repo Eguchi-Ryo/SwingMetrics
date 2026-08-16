@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SwingMetrics AI - お手本ライブラリ</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col font-sans">
+
+  <!-- ヘッダー -->
+  <header class="bg-slate-800 border-b border-slate-700 px-6 py-3 flex justify-between items-center sticky top-0 z-50">
+    <div class="flex items-center gap-8">
+      <div class="flex items-center gap-2">
+        <div class="bg-blue-600 text-white font-black px-2.5 py-1 rounded-lg tracking-wider text-sm">SM</div>
+        <span class="text-xl font-bold tracking-wide text-white">SwingMetrics <span class="text-blue-400">AI</span></span>
+      </div>
+      <nav class="hidden md:flex gap-6 text-sm font-medium">
+        <a href="dashboard.html" class="text-slate-400 hover:text-white transition">ダッシュボード</a>
+        <a href="upload.html" class="text-slate-400 hover:text-white transition">新規解析</a>
+        <a href="models.html" class="text-blue-400 border-b-2 border-blue-400 pb-1">お手本ライブラリ</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- メインコンテンツ -->
+  <main class="flex-1 p-6 max-w-[1200px] w-full mx-auto space-y-6">
+    
+    <div class="flex justify-between items-end">
+      <div>
+        <h1 class="text-xl font-bold text-white">お手本スイングライブラリ</h1>
+        <p class="text-xs text-slate-400 mt-1">2画面比較解析で「比較基準」として読み込むお手本動画を選択・登録できます。</p>
+      </div>
+      <button class="bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold px-4 py-2.5 rounded-lg transition shadow-lg shadow-blue-600/30 flex items-center gap-1.5">
+        <span>+</span> 好きな動画をお手本に追加
+      </button>
+    </div>
+
+    <!-- カテゴリタブ -->
+    <div class="flex gap-4 border-b border-slate-700 pb-2 text-xs font-semibold">
+      <button class="text-blue-400 border-b-2 border-blue-400 pb-2">すべて</button>
+      <button class="text-slate-400 hover:text-slate-200 pb-2">マイお手本 (自作)</button>
+      <button class="text-slate-400 hover:text-slate-200 pb-2">プロ推奨データ</button>
+    </div>
+
+    <!-- カード一覧 -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      
+      <!-- マイお手本カード (ユーザー追加) -->
+      <div class="bg-slate-800 border border-blue-500/50 rounded-xl overflow-hidden shadow-xl space-y-3 p-4 relative">
+        <span class="absolute top-2 right-2 bg-blue-500/20 text-blue-300 text-[10px] font-bold px-2 py-0.5 rounded border border-blue-400/30">マイお手本</span>
+        <div class="h-40 bg-slate-950 rounded-lg flex items-center justify-center relative border border-slate-800">
+          <span class="text-xs text-slate-500 font-mono">[MY BEST SWING VIDEO]</span>
+          <span class="absolute top-2.5 left-2.5 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">Golf</span>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-slate-100">絶好調時の7番アイアン (2026/05撮影)</h3>
+          <p class="text-xs text-slate-400 mt-1">自己ベストフォーム / インパクト前傾 41.5°</p>
+        </div>
+        <button class="w-full bg-blue-600 text-white text-xs font-bold py-2 rounded-lg transition">
+          比較モデルにセット中
+        </button>
+      </div>
+
+      <!-- プロモデルカード 1 -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-xl space-y-3 p-4">
+        <div class="h-40 bg-slate-950 rounded-lg flex items-center justify-center relative border border-slate-800">
+          <span class="text-xs text-slate-500 font-mono">[PRO MODEL VIDEO A]</span>
+          <span class="absolute top-2.5 left-2.5 bg-blue-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">Golf</span>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-slate-100">PGAツアープロ A (標準アイアン)</h3>
+          <p class="text-xs text-slate-400 mt-1">インパクト前傾角度 42.0° / 理想的なX-Factorモデル</p>
+        </div>
+        <button class="w-full bg-slate-700 hover:bg-blue-600 text-slate-200 hover:text-white text-xs font-bold py-2 rounded-lg transition">
+          比較モデルに選択
+        </button>
+      </div>
+
+      <!-- プロモデルカード 2 -->
+      <div class="bg-slate-800 border border-slate-700 rounded-xl overflow-hidden shadow-xl space-y-3 p-4">
+        <div class="h-40 bg-slate-950 rounded-lg flex items-center justify-center relative border border-slate-800">
+          <span class="text-xs text-slate-500 font-mono">[PRO MODEL VIDEO B]</span>
+          <span class="absolute top-2.5 left-2.5 bg-emerald-600 text-white text-[10px] font-bold px-2 py-0.5 rounded">Baseball</span>
+        </div>
+        <div>
+          <h3 class="text-sm font-bold text-slate-100">MLBクリーンナップ打者 (右打ち)</h3>
+          <p class="text-xs text-slate-400 mt-1">強固な軸足保持 ＆ インサイドアウト軌道モデル</p>
+        </div>
+        <button class="w-full bg-slate-700 hover:bg-blue-600 text-slate-200 hover:text-white text-xs font-bold py-2 rounded-lg transition">
+          比較モデルに選択
+        </button>
+      </div>
+
+    </div>
+
+  </main>
+</body>
+</html>

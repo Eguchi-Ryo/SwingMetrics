@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}SwingMetrics AI{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body class="app-body">
+    <div class="page-shell">
+      <header class="topbar">
+        <div class="brand-group">
+          <a href="{{ url_for('main.index') }}" class="brand-mark-link">
+            <div class="brand-mark">SM</div>
+            <div class="brand-text">SwingMetrics <span>AI</span></div>
+          </a>
+        </div>
+        <nav class="topnav" aria-label="メインナビゲーション">
+          <a href="{{ url_for('main.dashboard') }}" {% if request.path == '/dashboard' %}class="is-active"{% endif %}>ダッシュボード</a>
+          <a href="{{ url_for('main.upload') }}" {% if request.path == '/upload' %}class="is-active"{% endif %}>新規解析</a>
+          <a href="{{ url_for('main.models') }}" {% if request.path == '/models' %}class="is-active"{% endif %}>お手本ライブラリ</a>
+        </nav>
+      </header>
+
+      {% block content %}{% endblock %}
+    </div>
+  </body>
+</html>

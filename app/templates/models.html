@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}SwingMetrics AI - お手本ライブラリ{% endblock %}
+
+{% block content %}
+  <main class="page-main">
+    <div class="page-header">
+      <div>
+        <h1>お手本スイングライブラリ</h1>
+        <p>2画面比較解析で読み込む比較基準を選択・登録できます。</p>
+      </div>
+      <button class="primary-btn" type="button">+ 好きな動画をお手本に追加</button>
+    </div>
+
+    <div class="panel">
+      <div class="filter-row">
+        <span class="badge blue">すべて</span>
+        <span class="badge">マイお手本 (自作)</span>
+        <span class="badge">プロ推奨データ</span>
+      </div>
+
+      <div class="model-grid">
+        {% for model in models %}
+          <article class="card">
+            <div class="card-media">
+              <span class="card-badge">{{ model.sport }}</span>
+              <span class="score-badge">Target {{ model.angle }}°</span>
+              [MODEL VIDEO]
+            </div>
+            <div class="card-body">
+              <h3>{{ model.name }}</h3>
+              <p>比較基準として選択可能なモデルです。</p>
+              <button class="primary-btn card-button" type="button">比較モデルに選択</button>
+            </div>
+          </article>
+        {% endfor %}
+      </div>
+    </div>
+  </main>
+{% endblock %}

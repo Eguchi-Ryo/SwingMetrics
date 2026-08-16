@@ -1,0 +1,76 @@
+{% extends 'base.html' %}
+
+{% block title %}SwingMetrics AI - 新規解析{% endblock %}
+
+{% block content %}
+  <main class="page-main">
+    <div class="page-header">
+      <div>
+        <h1>スイング動画のアップロード &amp; 解析設定</h1>
+        <p>解析したい動画と設定を入力してください。推奨: 3〜10秒程度の MP4 動画</p>
+      </div>
+    </div>
+
+    <section class="form-card">
+      <div class="upload-dropzone">
+        <strong>動画ファイルをドラッグ＆ドロップ</strong>
+        <span>または PC からファイルを選択（MP4, MOV / 最大 100MB）</span>
+        <input id="video-file" type="file" accept="video/*" style="display: block; margin: 1rem auto 0;" />
+      </div>
+
+      <form class="form-grid">
+        <div class="field">
+          <label for="title">解析タイトル</label>
+          <input id="title" type="text" placeholder="例: 7番アイアン 前傾維持チェック" />
+        </div>
+
+        <div class="field">
+          <label for="sport">対象スポーツ</label>
+          <select id="sport">
+            {% for sport in form_options.sports %}
+              <option value="{{ sport }}">{{ sport }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="angle">撮影画角 (アングル)</label>
+          <select id="angle">
+            {% for angle in form_options.angles %}
+              <option value="{{ angle }}">{{ angle }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="model">比較モデル</label>
+          <select id="model">
+            {% for model in range(1, 4) %}
+              <option value="比較モデル {{ model }}">比較モデル {{ model }}</option>
+            {% endfor %}
+          </select>
+        </div>
+      </form>
+
+      <div class="submit-row">
+        <a class="primary-btn" href="{{ url_for('main.analysis') }}">AI解析を開始する (YOLO-Pose)</a>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const fileInput = document.getElementById('video-file');
+    if (fileInput) {
+      fileInput.addEventListener('change', (event) => {
+        const file = event.target.files?.[0];
+        const dropzone = fileInput.parentElement;
+        if (file && dropzone) {
+          const fileName = document.createElement('div');
+          fileName.className = 'selected-file';
+          fileName.textContent = `選択済み: ${file.name}`;
+          dropzone.appendChild(fileName);
+        }
+      });
+    }
+  </script>
+{% endblock %}

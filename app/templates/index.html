@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}SwingMetrics AI - ホーム{% endblock %}
+
+{% block content %}
+  <main class="landing-page">
+    <section class="hero-card">
+      <p class="eyebrow">AI Form Analysis</p>
+      <h1>スイングを数値で見える化し、改善へつなげる</h1>
+      <p class="lead">
+        SwingMetrics AI は、動画をもとにスイングの角度・軸・フォームを比較分析し、
+        比較対象と一緒に改善の方向性を確認できるプラットフォームです。
+      </p>
+
+      <div class="cta-row">
+        <a class="primary-btn" href="{{ url_for('main.dashboard') }}">ダッシュボードを見る</a>
+        <a class="secondary-btn" href="{{ url_for('main.upload') }}">新規解析を開始</a>
+      </div>
+    </section>
+
+    <section class="feature-grid">
+      <article class="feature-card">
+        <h2>01. 解析の可視化</h2>
+        <p>時系列に沿って前傾角度や軸ブレを確認できます。</p>
+      </article>
+      <article class="feature-card">
+        <h2>02. 目標モデル比較</h2>
+        <p>お手本スイングと比較し、差分を明確に把握できます。</p>
+      </article>
+      <article class="feature-card">
+        <h2>03. 成長の追跡</h2>
+        <p>過去の解析履歴をもとに、改善傾向を追跡します。</p>
+      </article>
+    </section>
+  </main>
+{% endblock %}
