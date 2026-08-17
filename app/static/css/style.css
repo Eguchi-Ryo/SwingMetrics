@@ -1222,3 +1222,135 @@ button, input, select {
 }
 
 }
+
+/* ツールチップ解説スタイル */
+.tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.help-circle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #334155;
+  color: #94a3b8;
+  border: 1px solid #475569;
+  font-size: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.help-circle-btn:hover {
+  background: #3b82f6;
+  color: #ffffff;
+  border-color: #60a5fa;
+}
+
+.tooltip-popup {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: -10px;
+  width: 240px;
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 10px 12px;
+  box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.6);
+  font-size: 11px;
+  line-height: 1.4;
+  z-index: 50;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  pointer-events: none;
+}
+
+.tooltip-popup strong {
+  display: block;
+  color: #60a5fa;
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+.tooltip-popup p {
+  margin: 0;
+}
+
+.tooltip-wrap:hover .tooltip-popup {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* ツールチップ解説スタイル */
+.tooltip-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.help-circle-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #334155;
+  color: #94a3b8;
+  border: 1px solid #475569;
+  font-size: 10px;
+  font-weight: bold;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+}
+
+.help-circle-btn:hover {
+  background: #3b82f6;
+  color: #ffffff;
+  border-color: #60a5fa;
+}
+
+.tooltip-popup {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: -10px;
+  width: 250px;
+  background: #0f172a;
+  color: #e2e8f0;
+  border: 1px solid #334155;
+  border-radius: 6px;
+  padding: 10px 12px;
+  box-shadow: 0 10px 20px -3px rgba(0, 0, 0, 0.6);
+  font-size: 11px;
+  line-height: 1.4;
+  z-index: 50;
+  transition: opacity 0.2s ease, visibility 0.2s ease;
+  pointer-events: none;
+}
+
+.tooltip-popup strong {
+  display: block;
+  color: #60a5fa;
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+.tooltip-popup p {
+  margin: 0;
+}
+
+.tooltip-wrap:hover .tooltip-popup {
+  visibility: visible;
+  opacity: 1;
+}

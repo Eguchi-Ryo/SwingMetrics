@@ -1,39 +1,28 @@
 {% extends 'base.html' %}
 
-{% block title %}SwingMetrics AI - 新規解析{% endblock %}
+{% block title %}SwingMetrics AI - 打撃解析新規登録{% endblock %}
 
 {% block content %}
   <main class="page-main">
     <div class="page-header">
       <div>
-        <h1>スイング動画のアップロード &amp; 解析設定</h1>
-        <p>解析したい動画と設定を入力してください。推奨: 3〜10秒程度の MP4 動画</p>
+        <h1>野球 打撃スイング動画アップロード</h1>
+        <p>バッティング動画をアップロードしてください。AIが骨格運動学から打撃4大幾何学指標を自動算出します。</p>
       </div>
     </div>
 
     <section class="form-card">
-      <!-- 修正: form タグで全体を囲み、enctype を追加 -->
       <form class="form-grid" method="post" action="{{ url_for('main.upload') }}" enctype="multipart/form-data">
         
-        <!-- 修正: form の内側に dropzone を配置し、name="file" を追加 -->
         <div class="upload-dropzone" style="grid-column: 1 / -1;">
-          <strong>動画ファイルをドラッグ＆ドロップ</strong>
-          <span>または PC からファイルを選択（MP4, MOV / 最大 100MB）</span>
+          <strong>打撃動画ファイルをドラッグ＆ドロップ</strong>
+          <span>またはファイルを選択（MP4, MOV / 推奨: 60fps以上の横向き撮影）</span>
           <input id="video-file" name="file" type="file" accept="video/*" style="display: block; margin: 1rem auto 0;" required />
         </div>
 
         <div class="field">
           <label for="title">解析タイトル</label>
-          <input id="title" name="title" type="text" value="7番アイアン 前傾維持チェック" placeholder="例: 7番アイアン 前傾維持チェック" />
-        </div>
-
-        <div class="field">
-          <label for="sport">対象スポーツ</label>
-          <select id="sport" name="sport">
-            {% for sport in form_options.sports %}
-              <option value="{{ sport }}">{{ sport }}</option>
-            {% endfor %}
-          </select>
+          <input id="title" name="title" type="text" value="打撃スイング解析" placeholder="例: レベルスイング軌道確認" />
         </div>
 
         <div class="field">
@@ -45,38 +34,10 @@
           </select>
         </div>
 
-        <div class="field">
-          <label for="model">比較モデル</label>
-          <select id="model" name="model">
-            {% for model in range(1, 4) %}
-              <option value="比較モデル {{ model }}">比較モデル {{ model }}</option>
-            {% endfor %}
-          </select>
-        </div>
-
         <div class="submit-row" style="grid-column: 1 / -1;">
-          <button type="submit" class="primary-btn">AI解析を開始する (YOLO-Pose)</button>
+          <button type="submit" class="primary-btn">AI打撃解析を開始 (YOLO-Pose)</button>
         </div>
       </form>
     </section>
   </main>
-
-  <script>
-    const fileInput = document.getElementById('video-file');
-    if (fileInput) {
-      fileInput.addEventListener('change', (event) => {
-        const file = event.target.files?.[0];
-        const dropzone = fileInput.parentElement;
-        if (file && dropzone) {
-          const oldLabel = dropzone.querySelector('.selected-file');
-          if (oldLabel) oldLabel.remove();
-          
-          const fileName = document.createElement('div');
-          fileName.className = 'selected-file';
-          fileName.textContent = `選択済み: ${file.name}`;
-          dropzone.appendChild(fileName);
-        }
-      });
-    }
-  </script>
 {% endblock %}

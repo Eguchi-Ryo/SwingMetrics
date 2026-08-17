@@ -1,0 +1,990 @@
+[
+  {
+    "id": 1,
+    "title": "打撃スイング解析",
+    "sport": "野球 (打撃)",
+    "angle": "真横 (打者正面側 / サイド)",
+    "status": "completed",
+    "progress": 100,
+    "video_url": "/videos/annotated_batting_63d3ee80-85dd-4769-ac56-02cccb8012b8.mp4",
+    "annotated_video_url": "/videos/annotated_batting_63d3ee80-85dd-4769-ac56-02cccb8012b8.mp4",
+    "current_angle": 25.0,
+    "overall_score": 50,
+    "metrics": [
+      {
+        "label": "アタック・アングル (Attack Angle)",
+        "value": "+25.0°",
+        "benchmark": "+5°〜+15°",
+        "desc": "インパクト時のバット進入仰角。投球のダウンヒル軌道（約-6°）に合わせ、長打ゾーンを生み出す垂直角度です。"
+      },
+      {
+        "label": "アタック・ディレクション (Attack Direction)",
+        "value": "-20.0°",
+        "benchmark": "-5°〜+5° (センター)",
+        "desc": "インパクト時の水平進入角度。センターライン（0°）に対し、適切なインサイドアウト軌道が作れているかを示します。"
+      },
+      {
+        "label": "スイング・パス・チルト (垂直バット角度 / VBA)",
+        "value": "-55.0°",
+        "benchmark": "-20°〜-40°",
+        "desc": "インパクト直前のバットの縦の傾き角度。コース高低に適応し、内野フライや打ち損じを抑える指標です。"
+      },
+      {
+        "label": "バットと体の角度 (90度則)",
+        "value": "136.9°",
+        "benchmark": "80°〜90°",
+        "desc": "体幹回旋軸とスイングプレーンの直交度。直角（80°〜90°）に保つことで、回転エネルギーを逃さずバットへ伝達します。"
+      }
+    ],
+    "frames": [
+      {
+        "frame_index": 0,
+        "spine_angle": 0.0
+      },
+      {
+        "frame_index": 1,
+        "spine_angle": 1.6
+      },
+      {
+        "frame_index": 2,
+        "spine_angle": 1.8
+      },
+      {
+        "frame_index": 3,
+        "spine_angle": 2.0
+      },
+      {
+        "frame_index": 4,
+        "spine_angle": 2.3
+      },
+      {
+        "frame_index": 5,
+        "spine_angle": 2.0
+      },
+      {
+        "frame_index": 6,
+        "spine_angle": 3.5
+      },
+      {
+        "frame_index": 7,
+        "spine_angle": 3.6
+      },
+      {
+        "frame_index": 8,
+        "spine_angle": 2.8
+      },
+      {
+        "frame_index": 9,
+        "spine_angle": 4.2
+      },
+      {
+        "frame_index": 10,
+        "spine_angle": 5.4
+      },
+      {
+        "frame_index": 11,
+        "spine_angle": 4.9
+      },
+      {
+        "frame_index": 12,
+        "spine_angle": 4.9
+      },
+      {
+        "frame_index": 13,
+        "spine_angle": 5.0
+      },
+      {
+        "frame_index": 14,
+        "spine_angle": 7.2
+      },
+      {
+        "frame_index": 15,
+        "spine_angle": 7.5
+      },
+      {
+        "frame_index": 16,
+        "spine_angle": 6.9
+      },
+      {
+        "frame_index": 17,
+        "spine_angle": 8.0
+      },
+      {
+        "frame_index": 18,
+        "spine_angle": 6.4
+      },
+      {
+        "frame_index": 19,
+        "spine_angle": 7.3
+      },
+      {
+        "frame_index": 20,
+        "spine_angle": 8.3
+      },
+      {
+        "frame_index": 21,
+        "spine_angle": 8.5
+      },
+      {
+        "frame_index": 22,
+        "spine_angle": 8.7
+      },
+      {
+        "frame_index": 23,
+        "spine_angle": 6.8
+      },
+      {
+        "frame_index": 24,
+        "spine_angle": 8.7
+      },
+      {
+        "frame_index": 25,
+        "spine_angle": 8.0
+      },
+      {
+        "frame_index": 26,
+        "spine_angle": 9.0
+      },
+      {
+        "frame_index": 27,
+        "spine_angle": 9.0
+      },
+      {
+        "frame_index": 28,
+        "spine_angle": 8.9
+      },
+      {
+        "frame_index": 29,
+        "spine_angle": 8.9
+      },
+      {
+        "frame_index": 30,
+        "spine_angle": 9.3
+      },
+      {
+        "frame_index": 31,
+        "spine_angle": 9.4
+      },
+      {
+        "frame_index": 32,
+        "spine_angle": 9.3
+      },
+      {
+        "frame_index": 33,
+        "spine_angle": 9.3
+      },
+      {
+        "frame_index": 34,
+        "spine_angle": 9.3
+      },
+      {
+        "frame_index": 35,
+        "spine_angle": 9.3
+      },
+      {
+        "frame_index": 36,
+        "spine_angle": 9.3
+      },
+      {
+        "frame_index": 37,
+        "spine_angle": 9.6
+      },
+      {
+        "frame_index": 38,
+        "spine_angle": 9.5
+      },
+      {
+        "frame_index": 39,
+        "spine_angle": 9.5
+      },
+      {
+        "frame_index": 40,
+        "spine_angle": 9.9
+      },
+      {
+        "frame_index": 41,
+        "spine_angle": 10.1
+      },
+      {
+        "frame_index": 42,
+        "spine_angle": 10.3
+      },
+      {
+        "frame_index": 43,
+        "spine_angle": 10.3
+      },
+      {
+        "frame_index": 44,
+        "spine_angle": 5.8
+      },
+      {
+        "frame_index": 45,
+        "spine_angle": 12.2
+      },
+      {
+        "frame_index": 46,
+        "spine_angle": 11.6
+      },
+      {
+        "frame_index": 47,
+        "spine_angle": 12.2
+      },
+      {
+        "frame_index": 48,
+        "spine_angle": 13.1
+      },
+      {
+        "frame_index": 49,
+        "spine_angle": 13.0
+      },
+      {
+        "frame_index": 50,
+        "spine_angle": 13.2
+      },
+      {
+        "frame_index": 51,
+        "spine_angle": 13.2
+      },
+      {
+        "frame_index": 52,
+        "spine_angle": 12.9
+      },
+      {
+        "frame_index": 53,
+        "spine_angle": 12.5
+      },
+      {
+        "frame_index": 54,
+        "spine_angle": 12.7
+      },
+      {
+        "frame_index": 55,
+        "spine_angle": 12.8
+      },
+      {
+        "frame_index": 56,
+        "spine_angle": 13.4
+      },
+      {
+        "frame_index": 57,
+        "spine_angle": 13.0
+      },
+      {
+        "frame_index": 58,
+        "spine_angle": 13.1
+      },
+      {
+        "frame_index": 59,
+        "spine_angle": 13.9
+      },
+      {
+        "frame_index": 60,
+        "spine_angle": 13.0
+      },
+      {
+        "frame_index": 61,
+        "spine_angle": 13.2
+      },
+      {
+        "frame_index": 62,
+        "spine_angle": 12.8
+      },
+      {
+        "frame_index": 63,
+        "spine_angle": 12.2
+      },
+      {
+        "frame_index": 64,
+        "spine_angle": 11.2
+      },
+      {
+        "frame_index": 65,
+        "spine_angle": 11.7
+      },
+      {
+        "frame_index": 66,
+        "spine_angle": 13.8
+      },
+      {
+        "frame_index": 67,
+        "spine_angle": 14.4
+      },
+      {
+        "frame_index": 68,
+        "spine_angle": 14.5
+      },
+      {
+        "frame_index": 69,
+        "spine_angle": 16.0
+      },
+      {
+        "frame_index": 70,
+        "spine_angle": 16.6
+      },
+      {
+        "frame_index": 71,
+        "spine_angle": 17.8
+      },
+      {
+        "frame_index": 72,
+        "spine_angle": 17.9
+      },
+      {
+        "frame_index": 73,
+        "spine_angle": 20.5
+      },
+      {
+        "frame_index": 74,
+        "spine_angle": 22.5
+      },
+      {
+        "frame_index": 75,
+        "spine_angle": 20.1
+      },
+      {
+        "frame_index": 76,
+        "spine_angle": 22.0
+      },
+      {
+        "frame_index": 77,
+        "spine_angle": 23.5
+      },
+      {
+        "frame_index": 78,
+        "spine_angle": 22.8
+      },
+      {
+        "frame_index": 79,
+        "spine_angle": 22.6
+      },
+      {
+        "frame_index": 80,
+        "spine_angle": 22.2
+      },
+      {
+        "frame_index": 81,
+        "spine_angle": 20.7
+      },
+      {
+        "frame_index": 82,
+        "spine_angle": 21.6
+      },
+      {
+        "frame_index": 83,
+        "spine_angle": 21.7
+      },
+      {
+        "frame_index": 84,
+        "spine_angle": 21.7
+      },
+      {
+        "frame_index": 85,
+        "spine_angle": 22.3
+      },
+      {
+        "frame_index": 86,
+        "spine_angle": 21.5
+      },
+      {
+        "frame_index": 87,
+        "spine_angle": 19.8
+      },
+      {
+        "frame_index": 88,
+        "spine_angle": 18.8
+      },
+      {
+        "frame_index": 89,
+        "spine_angle": 16.8
+      },
+      {
+        "frame_index": 90,
+        "spine_angle": 15.2
+      },
+      {
+        "frame_index": 91,
+        "spine_angle": 13.4
+      },
+      {
+        "frame_index": 92,
+        "spine_angle": 14.0
+      },
+      {
+        "frame_index": 93,
+        "spine_angle": 12.7
+      },
+      {
+        "frame_index": 94,
+        "spine_angle": 11.7
+      },
+      {
+        "frame_index": 95,
+        "spine_angle": 9.9
+      },
+      {
+        "frame_index": 96,
+        "spine_angle": 9.6
+      },
+      {
+        "frame_index": 97,
+        "spine_angle": 10.7
+      },
+      {
+        "frame_index": 98,
+        "spine_angle": 8.2
+      },
+      {
+        "frame_index": 99,
+        "spine_angle": 7.4
+      },
+      {
+        "frame_index": 100,
+        "spine_angle": 5.9
+      },
+      {
+        "frame_index": 101,
+        "spine_angle": 5.6
+      },
+      {
+        "frame_index": 102,
+        "spine_angle": 4.5
+      },
+      {
+        "frame_index": 103,
+        "spine_angle": 3.3
+      },
+      {
+        "frame_index": 104,
+        "spine_angle": 1.6
+      },
+      {
+        "frame_index": 105,
+        "spine_angle": 1.6
+      },
+      {
+        "frame_index": 106,
+        "spine_angle": 1.5
+      },
+      {
+        "frame_index": 107,
+        "spine_angle": 0.4
+      },
+      {
+        "frame_index": 108,
+        "spine_angle": 0.5
+      },
+      {
+        "frame_index": 109,
+        "spine_angle": 1.5
+      },
+      {
+        "frame_index": 110,
+        "spine_angle": 3.4
+      },
+      {
+        "frame_index": 111,
+        "spine_angle": 3.9
+      },
+      {
+        "frame_index": 112,
+        "spine_angle": 3.9
+      }
+    ],
+    "timestamp": "2026-08-17 14:53:38",
+    "score": 50
+  },
+  {
+    "id": 2,
+    "title": "[お手本] ohtani",
+    "sport": "野球 (打撃)",
+    "angle": "真横 (打者正面側 / サイド)",
+    "status": "completed",
+    "progress": 100,
+    "video_url": "/videos/annotated_bm_raw_2d371d06-d400-45ca-97f5-95ed70145254.mp4",
+    "annotated_video_url": "/videos/annotated_bm_raw_2d371d06-d400-45ca-97f5-95ed70145254.mp4",
+    "current_angle": 25.0,
+    "overall_score": 50,
+    "metrics": [
+      {
+        "label": "アタック・アングル (Attack Angle)",
+        "value": "+25.0°",
+        "benchmark": "+5°〜+15°",
+        "desc": "インパクト時のバット進入仰角。投球のダウンヒル軌道（約-6°）に合わせ、長打ゾーンを生み出す垂直角度です。"
+      },
+      {
+        "label": "アタック・ディレクション (Attack Direction)",
+        "value": "-20.0°",
+        "benchmark": "-5°〜+5° (センター)",
+        "desc": "インパクト時の水平進入角度。センターライン（0°）に対し、適切なインサイドアウト軌道が作れているかを示します。"
+      },
+      {
+        "label": "スイング・パス・チルト (垂直バット角度 / VBA)",
+        "value": "-55.0°",
+        "benchmark": "-20°〜-40°",
+        "desc": "インパクト直前のバットの縦の傾き角度。コース高低に適応し、内野フライや打ち損じを抑える指標です。"
+      },
+      {
+        "label": "バットと体の角度 (90度則)",
+        "value": "136.9°",
+        "benchmark": "80°〜90°",
+        "desc": "体幹回旋軸とスイングプレーンの直交度。直角（80°〜90°）に保つことで、回転エネルギーを逃さずバットへ伝達します。"
+      }
+    ],
+    "frames": [
+      {
+        "frame_index": 0,
+        "spine_angle": 0.0
+      },
+      {
+        "frame_index": 1,
+        "spine_angle": 1.6
+      },
+      {
+        "frame_index": 2,
+        "spine_angle": 1.8
+      },
+      {
+        "frame_index": 3,
+        "spine_angle": 2.0
+      },
+      {
+        "frame_index": 4,
+        "spine_angle": 2.3
+      },
+      {
+        "frame_index": 5,
+        "spine_angle": 2.0
+      },
+      {
+        "frame_index": 6,
+        "spine_angle": 3.5
+      },
+      {
+        "frame_index": 7,
+        "spine_angle": 3.6
+      },
+      {
+        "frame_index": 8,
+        "spine_angle": 2.8
+      },
+      {
+        "frame_index": 9,
+        "spine_angle": 4.2
+      },
+      {
+        "frame_index": 10,
+        "spine_angle": 5.4
+      },
+      {
+        "frame_index": 11,
+        "spine_angle": 4.9
+      },
+      {
+        "frame_index": 12,
+        "spine_angle": 4.9
+      },
+      {
+        "frame_index": 13,
+        "spine_angle": 5.0
+      },
+      {
+        "frame_index": 14,
+        "spine_angle": 7.2
+      },
+      {
+        "frame_index": 15,
+        "spine_angle": 7.5
+      },
+      {
+        "frame_index": 16,
+        "spine_angle": 6.9
+      },
+      {
+        "frame_index": 17,
+        "spine_angle": 8.0
+      },
+      {
+        "frame_index": 18,
+        "spine_angle": 6.4
+      },
+      {
+        "frame_index": 19,
+        "spine_angle": 7.3
+      },
+      {
+        "frame_index": 20,
+        "spine_angle": 8.3
+      },
+      {
+        "frame_index": 21,
+        "spine_angle": 8.5
+      },
+      {
+        "frame_index": 22,
+        "spine_angle": 8.7
+      },
+      {
+        "frame_index": 23,
+        "spine_angle": 6.8
+      },
+      {
+        "frame_index": 24,
+        "spine_angle": 8.7
+      },
+      {
+        "frame_index": 25,
+        "spine_angle": 8.0
+      },
+      {
+        "frame_index": 26,
+        "spine_angle": 9.0
+      },
+      {
+        "frame_index": 27,
+        "spine_angle": 9.0
+      },
+      {
+        "frame_index": 28,
+        "spine_angle": 8.9
+      },
+      {
+        "frame_index": 29,
+        "spine_angle": 8.9
+      },
+      {
+        "frame_index": 30,
+        "spine_angle": 9.3
+      },
+      {
+        "frame_index": 31,
+        "spine_angle": 9.4
+      },
+      {
+        "frame_index": 32,
+        "spine_angle": 9.3
+      },
+      {
+        "frame_index": 33,
+        "spine_angle": 9.3
+      },
+      {
+        "frame_index": 34,
+        "spine_angle": 9.3
+      },
+      {
+        "frame_index": 35,
+        "spine_angle": 9.3
+      },
+      {
+        "frame_index": 36,
+        "spine_angle": 9.3
+      },
+      {
+        "frame_index": 37,
+        "spine_angle": 9.6
+      },
+      {
+        "frame_index": 38,
+        "spine_angle": 9.5
+      },
+      {
+        "frame_index": 39,
+        "spine_angle": 9.5
+      },
+      {
+        "frame_index": 40,
+        "spine_angle": 9.9
+      },
+      {
+        "frame_index": 41,
+        "spine_angle": 10.1
+      },
+      {
+        "frame_index": 42,
+        "spine_angle": 10.3
+      },
+      {
+        "frame_index": 43,
+        "spine_angle": 10.3
+      },
+      {
+        "frame_index": 44,
+        "spine_angle": 5.8
+      },
+      {
+        "frame_index": 45,
+        "spine_angle": 12.2
+      },
+      {
+        "frame_index": 46,
+        "spine_angle": 11.6
+      },
+      {
+        "frame_index": 47,
+        "spine_angle": 12.2
+      },
+      {
+        "frame_index": 48,
+        "spine_angle": 13.1
+      },
+      {
+        "frame_index": 49,
+        "spine_angle": 13.0
+      },
+      {
+        "frame_index": 50,
+        "spine_angle": 13.2
+      },
+      {
+        "frame_index": 51,
+        "spine_angle": 13.2
+      },
+      {
+        "frame_index": 52,
+        "spine_angle": 12.9
+      },
+      {
+        "frame_index": 53,
+        "spine_angle": 12.5
+      },
+      {
+        "frame_index": 54,
+        "spine_angle": 12.7
+      },
+      {
+        "frame_index": 55,
+        "spine_angle": 12.8
+      },
+      {
+        "frame_index": 56,
+        "spine_angle": 13.4
+      },
+      {
+        "frame_index": 57,
+        "spine_angle": 13.0
+      },
+      {
+        "frame_index": 58,
+        "spine_angle": 13.1
+      },
+      {
+        "frame_index": 59,
+        "spine_angle": 13.9
+      },
+      {
+        "frame_index": 60,
+        "spine_angle": 13.0
+      },
+      {
+        "frame_index": 61,
+        "spine_angle": 13.2
+      },
+      {
+        "frame_index": 62,
+        "spine_angle": 12.8
+      },
+      {
+        "frame_index": 63,
+        "spine_angle": 12.2
+      },
+      {
+        "frame_index": 64,
+        "spine_angle": 11.2
+      },
+      {
+        "frame_index": 65,
+        "spine_angle": 11.7
+      },
+      {
+        "frame_index": 66,
+        "spine_angle": 13.8
+      },
+      {
+        "frame_index": 67,
+        "spine_angle": 14.4
+      },
+      {
+        "frame_index": 68,
+        "spine_angle": 14.5
+      },
+      {
+        "frame_index": 69,
+        "spine_angle": 16.0
+      },
+      {
+        "frame_index": 70,
+        "spine_angle": 16.6
+      },
+      {
+        "frame_index": 71,
+        "spine_angle": 17.8
+      },
+      {
+        "frame_index": 72,
+        "spine_angle": 17.9
+      },
+      {
+        "frame_index": 73,
+        "spine_angle": 20.5
+      },
+      {
+        "frame_index": 74,
+        "spine_angle": 22.5
+      },
+      {
+        "frame_index": 75,
+        "spine_angle": 20.1
+      },
+      {
+        "frame_index": 76,
+        "spine_angle": 22.0
+      },
+      {
+        "frame_index": 77,
+        "spine_angle": 23.5
+      },
+      {
+        "frame_index": 78,
+        "spine_angle": 22.8
+      },
+      {
+        "frame_index": 79,
+        "spine_angle": 22.6
+      },
+      {
+        "frame_index": 80,
+        "spine_angle": 22.2
+      },
+      {
+        "frame_index": 81,
+        "spine_angle": 20.7
+      },
+      {
+        "frame_index": 82,
+        "spine_angle": 21.6
+      },
+      {
+        "frame_index": 83,
+        "spine_angle": 21.7
+      },
+      {
+        "frame_index": 84,
+        "spine_angle": 21.7
+      },
+      {
+        "frame_index": 85,
+        "spine_angle": 22.3
+      },
+      {
+        "frame_index": 86,
+        "spine_angle": 21.5
+      },
+      {
+        "frame_index": 87,
+        "spine_angle": 19.8
+      },
+      {
+        "frame_index": 88,
+        "spine_angle": 18.8
+      },
+      {
+        "frame_index": 89,
+        "spine_angle": 16.8
+      },
+      {
+        "frame_index": 90,
+        "spine_angle": 15.2
+      },
+      {
+        "frame_index": 91,
+        "spine_angle": 13.4
+      },
+      {
+        "frame_index": 92,
+        "spine_angle": 14.0
+      },
+      {
+        "frame_index": 93,
+        "spine_angle": 12.7
+      },
+      {
+        "frame_index": 94,
+        "spine_angle": 11.7
+      },
+      {
+        "frame_index": 95,
+        "spine_angle": 9.9
+      },
+      {
+        "frame_index": 96,
+        "spine_angle": 9.6
+      },
+      {
+        "frame_index": 97,
+        "spine_angle": 10.7
+      },
+      {
+        "frame_index": 98,
+        "spine_angle": 8.2
+      },
+      {
+        "frame_index": 99,
+        "spine_angle": 7.4
+      },
+      {
+        "frame_index": 100,
+        "spine_angle": 5.9
+      },
+      {
+        "frame_index": 101,
+        "spine_angle": 5.6
+      },
+      {
+        "frame_index": 102,
+        "spine_angle": 4.5
+      },
+      {
+        "frame_index": 103,
+        "spine_angle": 3.3
+      },
+      {
+        "frame_index": 104,
+        "spine_angle": 1.6
+      },
+      {
+        "frame_index": 105,
+        "spine_angle": 1.6
+      },
+      {
+        "frame_index": 106,
+        "spine_angle": 1.5
+      },
+      {
+        "frame_index": 107,
+        "spine_angle": 0.4
+      },
+      {
+        "frame_index": 108,
+        "spine_angle": 0.5
+      },
+      {
+        "frame_index": 109,
+        "spine_angle": 1.5
+      },
+      {
+        "frame_index": 110,
+        "spine_angle": 3.4
+      },
+      {
+        "frame_index": 111,
+        "spine_angle": 3.9
+      },
+      {
+        "frame_index": 112,
+        "spine_angle": 3.9
+      }
+    ],
+    "timestamp": "2026-08-17 14:57:46",
+    "score": 50
+  }
+]

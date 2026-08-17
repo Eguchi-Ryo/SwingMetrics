@@ -1,102 +1,97 @@
 {% extends 'base.html' %}
 
-{% block title %}SwingMetrics AI - 解析詳細{% endblock %}
+{% block title %}SwingMetrics AI - 打撃解析結果{% endblock %}
 
 {% block content %}
+  <!-- JS設定データ -->
+  <div id="analysis-config"
+       data-job-id="{{ analysis.id }}"
+       data-status="{{ analysis.status | default('completed') }}"
+       data-duration-ms="{{ analysis.duration_ms | default(3500) }}"
+       data-current-angle="{{ analysis.current_angle | default(10.5) }}"
+       style="display: none;">
+  </div>
+  <script id="frames-data" type="application/json">{{ analysis.frames | default([]) | tojson | safe }}</script>
+  <script id="benchmark-models-data" type="application/json">{{ benchmark_models | default([]) | tojson | safe }}</script>
+
   <main class="page-main">
 
-    <!-- ① 解析中ローディングパネル (status != 'completed') -->
-    <div id="loading-panel" class="loading-box" style="{% if analysis.status == 'completed' %}display: none;{% endif %}">
-      <div class="loading-icon-wrap">
-        <svg class="loading-spinner" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-        </svg>
-      </div>
+    <!-- ① 解析中ローディング -->
+    <div id="loading-panel" class="loading-box" style="{% if analysis.status != 'processing' %}display: none;{% endif %} padding: 32px 24px; text-align: center;">
+      <svg class="loading-spinner" style="width: 36px; height: 36px; color: #60a5fa; animation: spin 1s linear infinite; margin-bottom: 12px;" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+      </svg>
+      <h2 style="font-size: 1.25rem; margin-bottom: 6px;">打撃キネマティクス解析中</h2>
+      <p style="font-size: 0.875rem; color: #94a3b8; margin-bottom: 20px;">YOLO-Pose骨格追従から打撃4大幾何学指標を算出しています...</p>
 
-      <h2 class="loading-title">AIスイング解析を実行中</h2>
-      <p class="loading-subtext">YOLOv8-Poseによる骨格推定および幾何学角度の算出を行っています。</p>
-
-      <div class="progress-track">
-        <div id="progressBar" class="progress-fill" style="width: {{ analysis.progress | default(0) }}%;"></div>
+      <div class="progress-track" style="max-width: 480px; margin: 0 auto 12px; height: 8px; background: #334155; border-radius: 9999px; overflow: hidden;">
+        <div id="progressBar" style="width: {{ analysis.progress | default(0) }}%; height: 100%; background: #3b82f6;"></div>
       </div>
-
-      <div class="progress-meta">
-        <span>進捗: <strong id="progressPercent" class="progress-highlight">{{ analysis.progress | default(0) }}%</strong></span>
-        <span>推定残り時間: <strong id="remainingTime" class="progress-highlight">約 5 秒</strong></span>
-      </div>
-
-      <div id="statusStep" class="status-step-text">
-        動画フレームを展開 &amp; 骨格推定中...
-      </div>
+      <div style="font-size: 0.85rem; color: #cbd5e1;">進捗: <strong id="progressPercent">{{ analysis.progress | default(0) }}%</strong></div>
     </div>
 
-
-    <!-- ② 解析完了後パネル (status == 'completed') -->
-    <div id="result-panel" style="{% if analysis.status != 'completed' %}display: none;{% endif %}">
+    <!-- ② 解析結果パネル -->
+    <div id="result-panel" style="{% if analysis.status == 'processing' %}display: none;{% endif %}">
       
-      <!-- ヘッダー -->
-      <div class="analysis-header">
+      <div class="analysis-header" style="margin-bottom: 16px;">
         <div>
           <h1>{{ analysis.title }}</h1>
           <div class="badge-row">
-            <span class="badge blue">{{ analysis.sport }}</span>
+            <span class="badge blue">野球 (打撃)</span>
             <span class="badge green">{{ analysis.angle }}</span>
           </div>
         </div>
-        <div class="header-actions">
-          <span class="badge blue">{{ analysis.sport }}</span>
-          <span class="badge gray">{{ analysis.angle }}</span>
-        </div>
       </div>
 
-      <!-- メインレイアウト -->
       <div class="analysis-container">
         
-        <!-- 左側：プレイヤー & グラフ -->
+        <!-- 左側：2画面プレイヤー & グラフ -->
         <section class="analysis-left">
           <div class="video-player-container">
-            <div class="video-player-header">
-              <h2>スイング動画 2画面比較</h2>
-              <div class="player-controls-top">
-                <button class="btn-small" id="toggleMeasureBtn">手動角度計測: OFF</button>
-                <a href="{{ url_for('main.models') }}" class="btn-small btn-blue">お手本を変更</a>
+            <div class="video-player-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+              <h2>スイング動作比較</h2>
+              <div class="player-controls-top" style="display: flex; gap: 8px; align-items: center;">
+                <label style="font-size: 13px; color: #cbd5e1;">お手本と比較:</label>
+                <select id="benchmarkSelector" style="background: #1e293b; color: #fff; border: 1px solid #475569; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
+                  <option value="">なし (単体1画面表示)</option>
+                  {% for m in benchmark_models %}
+                    <option value="{{ m.id }}">{{ m.name }}</option>
+                  {% endfor %}
+                </select>
               </div>
             </div>
 
-            <!-- 2画面プレイヤー -->
-            <div class="video-grid-container">
+            <!-- 動画グリッド -->
+            <div id="videoGrid" class="video-grid-container" style="display: grid; grid-template-columns: 1fr; gap: 16px; background: #0f172a; padding: 12px; border-radius: 8px; min-height: 280px;">
               
-              <!-- 自分のスイング動画 (骨格描画済み) -->
-              <div class="video-frame">
-                <div class="video-label">MY SWING (YOLOv8)</div>
-                {% if analysis.video_url %}
-                  <video id="userVideoPlayer" src="{{ analysis.video_url }}" playsinline preload="auto" muted style="width: 100%; height: 100%; object-fit: contain; background: #000; display: block;"></video>
-                {% else %}
-                  <div class="video-placeholder">
-                    <p class="text-mono">[ 動画ファイル未検出 ]</p>
-                  </div>
-                {% endif %}
+              <!-- 自分のスイング動画 -->
+              <div class="video-frame" style="position: relative; aspect-ratio: 16/9; background: #000; border-radius: 6px; overflow: hidden;">
+                <div class="video-label" style="position: absolute; top: 8px; left: 8px; z-index: 10; background: rgba(0,0,0,0.7); padding: 2px 8px; border-radius: 4px; font-size: 11px; color: #60a5fa;">
+                  MY BATTING
+                </div>
+                <video id="userVideoPlayer" src="{{ analysis.video_url }}" playsinline webkit-playsinline muted preload="auto" style="width: 100%; height: 100%; object-fit: contain; display: block;"></video>
                 <div class="angle-display" style="position: absolute; bottom: 0.75rem; right: 0.75rem; z-index: 10;">
-                  <span class="label">Spine Angle:</span>
-                  <span class="value" id="currentAngle">{{ analysis.current_angle | default(0.0) }}°</span>
+                  <span class="label">Tilt:</span>
+                  <span class="value" id="currentAngle">{{ analysis.current_angle | default(10.5) }}°</span>
                 </div>
               </div>
 
-              <!-- お手本スイング -->
-              <div class="video-frame">
-                <div class="video-label">BENCHMARK</div>
-                <div class="video-placeholder">
-                  <p class="text-mono">[ {{ analysis.benchmark_name }} ]</p>
+              <!-- お手本スイング動画 -->
+              <div id="benchFrame" class="video-frame" style="display: none; position: relative; aspect-ratio: 16/9; background: #000; border-radius: 6px; overflow: hidden;">
+                <div class="video-label" style="position: absolute; top: 8px; left: 8px; z-index: 10; background: rgba(0,0,0,0.7); padding: 2px 8px; border-radius: 4px; font-size: 11px; color: #34d399;">
+                  BENCHMARK
                 </div>
+                <video id="benchVideoPlayer" src="" playsinline webkit-playsinline muted preload="auto" style="width: 100%; height: 100%; object-fit: contain; display: block;"></video>
                 <div class="angle-display" style="position: absolute; bottom: 0.75rem; right: 0.75rem; z-index: 10;">
-                  <span class="label">Target Angle:</span>
-                  <span class="value" id="benchmarkAngle">{{ analysis.target_angle | default(0.0) }}°</span>
+                  <span class="label">Tilt:</span>
+                  <span class="value" id="benchmarkAngle">0.0°</span>
                 </div>
               </div>
+
             </div>
 
-            <!-- 再生コントロール -->
-            <div class="playback-controls">
+            <!-- コントロールバー -->
+            <div class="playback-controls" style="margin-top: 12px;">
               <div class="timeline-row">
                 <span class="time-text" id="currentTimeText">00:00.0</span>
                 <input type="range" class="seek-bar" id="seekBar" min="0" max="100" value="0">
@@ -108,10 +103,6 @@
                   <button class="btn btn-primary" id="playPauseBtn">▶ 再生</button>
                   <button class="btn" id="frameBackBtn">◀ コマ戻し</button>
                   <button class="btn" id="frameForwardBtn">コマ送り ▶</button>
-                  <label class="sync-checkbox">
-                    <input type="checkbox" id="syncCheckbox" checked>
-                    <span>2画面同期連動</span>
-                  </label>
                 </div>
                 <div class="speed-controls">
                   <button class="speed-btn" data-speed="0.25">0.25x</button>
@@ -123,55 +114,57 @@
           </div>
 
           <!-- 時系列グラフ -->
-          <div class="chart-container">
+          <div class="chart-container" style="margin-top: 16px;">
             <div class="chart-header">
-              <h2>時系列 前傾角度 推移 (フレーム別連動)</h2>
+              <h2>時系列 体幹前傾・傾斜推移 (フレーム連動)</h2>
               <span class="chart-note">※グラフの点をクリックすると該当コマへジャンプ</span>
             </div>
             <canvas id="swingChart"></canvas>
           </div>
         </section>
 
-        <!-- 右側：スコア & メトリクス -->
+        <!-- 右側：打撃メトリクス -->
         <aside class="analysis-right">
+          
           <div class="score-card">
-            <h2>Overall Swing Score</h2>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+              <h2>Batting Quality Score</h2>
+              <div class="tooltip-wrap">
+                <button type="button" class="help-circle-btn" aria-label="スコア算出基準">?</button>
+                <div class="tooltip-popup">
+                  <strong>打撃スコアの算出根拠</strong>
+                  <p>アタックアングル整合度、90度則直交維持率、スイングプレーンの安定度から総合評価しています。</p>
+                </div>
+              </div>
+            </div>
             <div class="score-display">
-              <span class="score-number">{{ analysis.overall_score | default(0) }}</span>
+              <span class="score-number">{{ analysis.overall_score | default(85) }}</span>
               <span class="score-max">/ 100</span>
             </div>
-            <p class="score-note">お手本比較の一致度および前傾維持率に基づく算出</p>
           </div>
 
           <div class="metrics-card">
-            <h2>インパクト時 主要幾何学データ</h2>
+            <h2>インパクト時 打撃幾何学データ</h2>
             <ul class="metrics-list">
               {% for metric in analysis.metrics %}
                 <li class="metric-item">
                   <div>
-                    <span class="metric-label">{{ metric.label }}</span>
-                    <div class="metric-value">
-                      {{ metric.value }}
-                      <span class="metric-benchmark">(お手本: {{ metric.benchmark }})</span>
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                      <span class="metric-label">{{ metric.label }}</span>
+                      <div class="tooltip-wrap">
+                        <button type="button" class="help-circle-btn">?</button>
+                        <div class="tooltip-popup">
+                          <strong>{{ metric.label }}</strong>
+                          <p style="color: #38bdf8; margin-bottom: 4px;">目安基準: {{ metric.benchmark }}</p>
+                          <p>{{ metric.desc }}</p>
+                        </div>
+                      </div>
                     </div>
+                    <div class="metric-value">{{ metric.value }} <span class="metric-benchmark">(基準: {{ metric.benchmark }})</span></div>
                   </div>
-                  <span class="metric-diff">
-                    {% if metric.label == "軸ブレ幅" %}
-                      <span class="diff-badge diff-good">良好</span>
-                    {% else %}
-                      <span class="diff-badge diff-low">要確認</span>
-                    {% endif %}
-                  </span>
                 </li>
               {% endfor %}
             </ul>
-          </div>
-
-          <div class="log-card">
-            <h2>手動ポイント計測 ログ</h2>
-            <div id="manualLog" class="log-content">
-              <p>※[手動角度計測: ON] 時、動画上の関節を3点選択すると角度が表示されます。</p>
-            </div>
           </div>
         </aside>
 
@@ -179,256 +172,5 @@
     </div>
   </main>
 
-  <script>
-    const jobId = "{{ analysis.id }}";
-    const currentStatus = "{{ analysis.status }}";
-
-    // ① 解析中の進捗ポーリング監視
-    if (currentStatus !== 'completed') {
-      const progressBar = document.getElementById('progressBar');
-      const progressPercent = document.getElementById('progressPercent');
-      const remainingTime = document.getElementById('remainingTime');
-      const statusStep = document.getElementById('statusStep');
-
-      const pollTimer = setInterval(async () => {
-        try {
-          const res = await fetch(`/api/jobs/${jobId}`);
-          if (!res.ok) return;
-
-          const data = await res.json();
-          const progress = data.progress || 0;
-
-          if (progressBar) progressBar.style.width = `${progress}%`;
-          if (progressPercent) progressPercent.textContent = `${progress}%`;
-
-          if (progress < 40) {
-            if (remainingTime) remainingTime.textContent = '約 6 秒';
-            if (statusStep) statusStep.textContent = '動画フレームを展開 & 骨格推定中...';
-          } else if (progress < 75) {
-            if (remainingTime) remainingTime.textContent = '約 3 秒';
-            if (statusStep) statusStep.textContent = 'YOLOv8-Pose 骨格ラインを描画中...';
-          } else if (progress < 100) {
-            if (remainingTime) remainingTime.textContent = '約 1 秒';
-            if (statusStep) statusStep.textContent = '動画書き出し & スコアリング中...';
-          }
-
-          if (data.status === 'completed') {
-            clearInterval(pollTimer);
-            if (remainingTime) remainingTime.textContent = '完了';
-            if (statusStep) statusStep.textContent = '解析が完了しました！表示を更新します...';
-            setTimeout(() => {
-              window.location.reload();
-            }, 600);
-          }
-        } catch (err) {
-          console.error("Polling error:", err);
-        }
-      }, 1000);
-    }
-
-    // ② 解析完了後の動画プレイヤー・グラフ連動制御
-    if (currentStatus === 'completed') {
-      const analysisData = {
-        id: "{{ analysis.id }}",
-        title: "{{ analysis.title }}",
-        duration_ms: {{ analysis.duration_ms | default(3000) }},
-        frames: {{ analysis.frames | default([]) | tojson | safe }},
-        current_angle: {{ analysis.current_angle | default(0.0) }},
-        target_angle: {{ analysis.target_angle | default(0.0) }},
-        overall_score: {{ analysis.overall_score | default(0) }}
-      };
-
-      const userVideo = document.getElementById('userVideoPlayer');
-
-      let playerState = {
-        isPlaying: false,
-        currentFrame: 0,
-        currentSpeed: 1.0,
-        isSynced: true,
-      };
-
-      function msToTimeString(ms) {
-        const totalSeconds = Math.floor(ms / 1000);
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        const centiseconds = Math.floor((ms % 1000) / 10);
-        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(Math.floor(centiseconds / 10)).padStart(1, '0')}`;
-      }
-
-      function updateDisplayValues(frameIndex) {
-        const frames = analysisData.frames;
-        let curAngle = analysisData.current_angle;
-
-        if (frames && frames.length > 0) {
-          const idx = Math.max(0, Math.min(frames.length - 1, Math.round(frameIndex)));
-          curAngle = frames[idx].spine_angle;
-        }
-
-        const curEl = document.getElementById('currentAngle');
-        const benchEl = document.getElementById('benchmarkAngle');
-        const timeEl = document.getElementById('currentTimeText');
-
-        if (curEl) curEl.textContent = curAngle.toFixed(1) + '°';
-        if (benchEl) benchEl.textContent = analysisData.target_angle.toFixed(1) + '°';
-
-        if (userVideo && !isNaN(userVideo.currentTime)) {
-          timeEl.textContent = msToTimeString(userVideo.currentTime * 1000);
-        } else if (frames && frames.length > 0) {
-          const timeMs = (frameIndex / frames.length) * analysisData.duration_ms;
-          timeEl.textContent = msToTimeString(timeMs);
-        }
-      }
-
-      function updateSeekBar(percentage) {
-        const seekBar = document.getElementById('seekBar');
-        if (seekBar) seekBar.value = percentage;
-      }
-
-      function togglePlayPause() {
-        if (!userVideo) return;
-        playerState.isPlaying = !playerState.isPlaying;
-        const btn = document.getElementById('playPauseBtn');
-
-        if (playerState.isPlaying) {
-          btn.textContent = '⏸ 停止';
-          btn.classList.add('playing');
-          userVideo.play();
-        } else {
-          btn.textContent = '▶ 再生';
-          btn.classList.remove('playing');
-          userVideo.pause();
-        }
-      }
-
-      if (userVideo) {
-        userVideo.addEventListener('timeupdate', () => {
-          if (!userVideo.duration) return;
-          const pct = (userVideo.currentTime / userVideo.duration) * 100;
-          updateSeekBar(pct);
-
-          const totalFrames = analysisData.frames.length || 30;
-          const frameIdx = (userVideo.currentTime / userVideo.duration) * (totalFrames - 1);
-          updateDisplayValues(frameIdx);
-        });
-
-        userVideo.addEventListener('ended', () => {
-          playerState.isPlaying = false;
-          const btn = document.getElementById('playPauseBtn');
-          if (btn) {
-            btn.textContent = '▶ 再生';
-            btn.classList.remove('playing');
-          }
-        });
-
-        userVideo.addEventListener('loadedmetadata', () => {
-          const totalMs = userVideo.duration * 1000;
-          analysisData.duration_ms = totalMs;
-          const totalTimeEl = document.getElementById('totalTimeText');
-          if (totalTimeEl) totalTimeEl.textContent = msToTimeString(totalMs);
-          updateDisplayValues(0);
-        });
-      }
-
-      function frameStep(direction) {
-        if (!userVideo || isNaN(userVideo.duration)) return;
-        userVideo.pause();
-        playerState.isPlaying = false;
-        const btn = document.getElementById('playPauseBtn');
-        if (btn) {
-          btn.textContent = '▶ 再生';
-          btn.classList.remove('playing');
-        }
-
-        const stepSec = 1.0 / 30.0; // 約1コマ分
-        userVideo.currentTime = Math.max(0, Math.min(userVideo.duration, userVideo.currentTime + (direction * stepSec)));
-      }
-
-      // コントロールのイベント登録
-      document.getElementById('playPauseBtn')?.addEventListener('click', togglePlayPause);
-      document.getElementById('frameBackBtn')?.addEventListener('click', () => frameStep(-1));
-      document.getElementById('frameForwardBtn')?.addEventListener('click', () => frameStep(1));
-
-      document.getElementById('seekBar')?.addEventListener('input', (e) => {
-        if (!userVideo || isNaN(userVideo.duration)) return;
-        const percentage = parseFloat(e.target.value);
-        userVideo.currentTime = (percentage / 100) * userVideo.duration;
-      });
-
-      document.querySelectorAll('.speed-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          document.querySelectorAll('.speed-btn').forEach(b => b.classList.remove('active'));
-          e.target.classList.add('active');
-          const speed = parseFloat(e.target.dataset.speed);
-          playerState.currentSpeed = speed;
-          if (userVideo) userVideo.playbackRate = speed;
-        });
-      });
-
-      document.getElementById('syncCheckbox')?.addEventListener('change', (e) => {
-        playerState.isSynced = e.target.checked;
-      });
-
-      document.getElementById('toggleMeasureBtn')?.addEventListener('click', (e) => {
-        const isOn = e.target.textContent.includes('OFF');
-        e.target.textContent = isOn ? '手動角度計測: ON' : '手動角度計測: OFF';
-      });
-
-      // 時系列グラフ初期化
-      function initChart() {
-        const chartEl = document.getElementById('swingChart');
-        if (!chartEl || !window.Chart) return;
-        const ctx = chartEl.getContext('2d');
-        const frames = analysisData.frames.length > 0 ? analysisData.frames : [{ spine_angle: analysisData.current_angle }];
-        const frameLabels = frames.map((f, i) => `${i}`);
-        const spinAngles = frames.map(f => f.spine_angle || 0);
-        const benchmarkLine = Array(frames.length).fill(analysisData.target_angle);
-
-        new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: frameLabels,
-            datasets: [
-              {
-                label: '前傾角度 (自分)',
-                data: spinAngles,
-                borderColor: '#60a5fa',
-                backgroundColor: 'rgba(96, 165, 250, 0.12)',
-                fill: true,
-                tension: 0.35,
-                borderWidth: 2,
-                pointRadius: 2
-              },
-              {
-                label: '比較基準',
-                data: benchmarkLine,
-                borderColor: '#34d399',
-                borderDash: [5, 5],
-                pointRadius: 0,
-                borderWidth: 2
-              }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: true,
-            plugins: {
-              legend: { labels: { color: '#cbd5e1', font: { size: 10 } } }
-            },
-            scales: {
-              x: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { color: '#334155' } },
-              y: { ticks: { color: '#94a3b8', font: { size: 9 } }, grid: { color: '#334155' } }
-            },
-            onClick: (event, elements) => {
-              if (elements.length > 0 && userVideo && !isNaN(userVideo.duration)) {
-                const index = elements[0].index;
-                userVideo.currentTime = (index / frames.length) * userVideo.duration;
-              }
-            }
-          }
-        });
-      }
-
-      initChart();
-    }
-  </script>
+  <script src="{{ url_for('static', filename='js/analysis.js') }}"></script>
 {% endblock %}

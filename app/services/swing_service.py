@@ -1,43 +1,32 @@
-def format_score(score: int) -> str:
-    return f"{score} / 100"
-
-
-def get_benchmark_by_id(benchmarks, benchmark_id):
-    return next((item for item in benchmarks if item["id"] == benchmark_id), benchmarks[0])
-
-
 def build_dashboard_summary(history):
+    if not history:
+        return {"total": 0, "average": 0}
+
     total = len(history)
-    average = sum(item["score"] for item in history) / total if total else 0
+    valid_scores = []
+    for item in history:
+        if isinstance(item, dict):
+            score = item.get("score") or item.get("overall_score")
+            if score is not None:
+                try:
+                    valid_scores.append(float(score))
+                except (ValueError, TypeError):
+                    pass
 
+    average = round(sum(valid_scores) / len(valid_scores), 1) if valid_scores else 0
+    return {"total": total, "average": average}
+
+def build_chart_config(labels, scores):
     return {
-        "total": total,
-        "average": round(average, 1),
-        "latest_score": history[0]["score"] if history else 0,
-        "improvement": 1.8,
-    }
-
-
-def build_chart_config(labels, series):
-    return {
-        "labels": labels,
+        "labels": labels if labels else ["-"],
         "datasets": [
             {
-                "label": "インパクト前傾角度 (°)",
-                "data": series,
-                "borderColor": "#3b82f6",
-                "backgroundColor": "rgba(59, 130, 246, 0.12)",
+                "label": "打撃スコア推移",
+                "data": scores if scores else [0],
+                "borderColor": "#60a5fa",
+                "backgroundColor": "rgba(96, 165, 250, 0.15)",
                 "fill": True,
-                "tension": 0.35,
-                "borderWidth": 2,
+                "tension": 0.3,
             }
-        ],
+        ]
     }
-
-
-def build_trend_metric(overall_score: int) -> str:
-    if overall_score >= 85:
-        return "Excellent"
-    if overall_score >= 75:
-        return "Good"
-    return "Needs Focus"

@@ -1,40 +1,92 @@
 {% extends 'base.html' %}
 
-{% block title %}SwingMetrics AI - お手本ライブラリ{% endblock %}
+{% block title %}SwingMetrics AI - お手本打撃ライブラリ{% endblock %}
 
 {% block content %}
   <main class="page-main">
     <div class="page-header">
       <div>
-        <h1>お手本スイングライブラリ</h1>
-        <p>2画面比較解析で読み込む比較基準を選択・登録できます。</p>
+        <h1>お手本打撃ライブラリ</h1>
+        <p>登録されたお手本動画は単独で事前解析され、解析結果画面でいつでも2画面比較として呼び出せます。</p>
       </div>
-      <button class="primary-btn" type="button">+ 好きな動画をお手本に追加</button>
+      <button class="primary-btn" type="button" onclick="document.getElementById('addModelModal').showModal()">+ お手本動画を追加</button>
     </div>
 
     <div class="panel">
-      <div class="filter-row">
-        <span class="badge blue">すべて</span>
-        <span class="badge">マイお手本 (自作)</span>
-        <span class="badge">プロ推奨データ</span>
-      </div>
-
       <div class="model-grid">
         {% for model in models %}
-          <article class="card">
+          <article class="card" style="position: relative;">
             <div class="card-media">
               <span class="card-badge">{{ model.sport }}</span>
-              <span class="score-badge">Target {{ model.angle }}°</span>
-              [MODEL VIDEO]
+              <span class="score-badge">{{ model.angle }}</span>
+              
+              {% if not model.is_system %}
+                <button 
+                  type="button" 
+                  onclick="deleteModel(event, '{{ model.id }}')"
+                  style="position: absolute; top: 8px; right: 8px; background: rgba(239,68,68,0.9); color: white; border: none; font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer; z-index: 10;">
+                  削除
+                </button>
+              {% endif %}
+
+              {% if model.video_url %}
+                <video src="{{ model.video_url }}" controls playsinline style="width: 100%; max-height: 200px; object-fit: cover; border-radius: 4px; display: block;"></video>
+              {% else %}
+                <div style="height: 140px; display: flex; align-items: center; justify-content: center; background: #0f172a; color: #64748b;">
+                  動画なし
+                </div>
+              {% endif %}
             </div>
             <div class="card-body">
-              <h3>{{ model.name }}</h3>
-              <p>比較基準として選択可能なモデルです。</p>
-              <button class="primary-btn card-button" type="button">比較モデルに選択</button>
+              <h3 style="margin: 8px 0 4px;">{{ model.name }}</h3>
+              <p style="font-size: 12px; color: #94a3b8; margin: 0;">基準アタック角: {{ model.target_angle | default(10.0) }}°</p>
             </div>
           </article>
         {% endfor %}
       </div>
     </div>
+
+    <dialog id="addModelModal" style="padding: 24px; border-radius: 8px; background: #1e293b; color: #f8fafc; border: 1px solid #334155; max-width: 440px; width: 90%;">
+      <form method="POST" action="{{ url_for('main.add_model') }}" enctype="multipart/form-data">
+        <h3 style="margin-top: 0; margin-bottom: 16px;">お手本打撃動画の登録 (事前AI解析)</h3>
+        
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 13px; margin-bottom: 4px; color: #cbd5e1;">お手本名 / 選手名</label>
+          <input type="text" name="name" required placeholder="例: プロ基準 レベルスイング" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff;" />
+        </div>
+
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 13px; margin-bottom: 4px; color: #cbd5e1;">撮影アングル</label>
+          <select name="angle" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff;">
+            {% for angle in form_options.angles %}
+              <option value="{{ angle }}">{{ angle }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; font-size: 13px; margin-bottom: 4px; color: #cbd5e1;">お手本動画ファイル (MP4)</label>
+          <input type="file" name="file" accept="video/*" required style="width: 100%; box-sizing: border-box; padding: 8px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff;" />
+        </div>
+
+        <div style="display: flex; gap: 8px; justify-content: flex-end;">
+          <button type="button" class="secondary-btn" onclick="document.getElementById('addModelModal').close()">キャンセル</button>
+          <button type="submit" class="primary-btn">登録 &amp; 事前解析</button>
+        </div>
+      </form>
+    </dialog>
   </main>
+
+  <script>
+    function deleteModel(event, modelId) {
+      event.preventDefault();
+      if (!confirm('このお手本動画を削除しますか？')) return;
+
+      fetch(`/api/models/${modelId}/delete`, { method: 'POST' })
+        .then(res => {
+          if (res.ok) window.location.reload();
+          else alert('削除できませんでした');
+        });
+    }
+  </script>
 {% endblock %}
