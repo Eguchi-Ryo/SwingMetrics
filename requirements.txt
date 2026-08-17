@@ -13,4 +13,8 @@ cryptography
 aiofiles
 pyyaml
 python-dotenv
-
+pymysql
+requests
+opencv-python
+numpy
+ultralytics

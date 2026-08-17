@@ -36,7 +36,7 @@ class Settings:
     # ================================
     DATABASE_URL = os.getenv(
         "DATABASE_URL",
-        "sqlite:///./swing_metrics.db"
+        "mysql+pymysql://root:password@localhost:3306/swingmetrics"
     )
     
     # ================================

@@ -47,7 +47,7 @@
 
       <div class="history-grid">
         {% for item in history %}
-          <a href="{{ url_for('main.analysis') }}" class="card" aria-label="{{ item.title }}">
+          <a href="{{ url_for('main.analysis', id=item.id) }}" class="card" aria-label="{{ item.title }}">
             <div class="card-media">
               <span class="card-badge">{{ item.sport }}</span>
               <span class="score-badge">Score {{ item.score }}</span>
