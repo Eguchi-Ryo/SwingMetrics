@@ -29,8 +29,10 @@ jobs:
           INSTANCE_ID="i-02c361d97ea7cb006"
 
           COMMANDS='[
+            "set -e",
+            "git config --system --add safe.directory /home/ec2-user/SwingMetrics || true",
             "cd /home/ec2-user/SwingMetrics",
-            "git pull origin main",
+            "sudo -u ec2-user git pull origin main",
             "echo \"Deploy finished successfully!\""
           ]'
 
