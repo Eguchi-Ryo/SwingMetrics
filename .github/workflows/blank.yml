@@ -25,10 +25,10 @@ jobs:
         run: echo "ASSUME_ROLE=${{ env.ASSUME_ROLE }}"
 
       - name: Configure AWS Credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: ap-northeast-1
-          role-to-assume: ${{ env.ASSUME_ROLE }}
+              uses: aws-actions/configure-aws-credentials@v4
+              with:
+                aws-region: ap-northeast-1
+                role-to-assume: arn:aws:iam::634523057682:role/SwingmetricsAutoDeploy
 
       - name: Print Hello World plan
         run: echo "Hello, Plan"
