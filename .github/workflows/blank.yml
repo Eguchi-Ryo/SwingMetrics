@@ -33,6 +33,7 @@ jobs:
             "git config --system --add safe.directory /home/ec2-user/SwingMetrics || true",
             "cd /home/ec2-user/SwingMetrics",
             "sudo -u ec2-user git pull origin main",
+            "sudo -u ec2-user /usr/local/bin/docker-compose up -d --build",
             "echo \"Deploy finished successfully!\""
           ]'
 
