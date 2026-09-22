@@ -17,7 +17,7 @@
           </a>
         </div>
         <nav class="topnav" aria-label="メインナビゲーション">
-          <a href="{{ url_for('main.dashboard') }}" {% if request.path == '/dashboard' %}class="is-active"{% endif %}>ダッシュボード dada</a>
+          <a href="{{ url_for('main.dashboard') }}" {% if request.path == '/dashboard' %}class="is-active"{% endif %}>ダッシュボード</a>
           <a href="{{ url_for('main.upload') }}" {% if request.path == '/upload' %}class="is-active"{% endif %}>新規解析</a>
           <a href="{{ url_for('main.models') }}" {% if request.path == '/models' %}class="is-active"{% endif %}>お手本ライブラリ</a>
         </nav>
