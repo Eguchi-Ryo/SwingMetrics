@@ -4,3 +4,5 @@ dist
 .DS_Store
 .venv
 .continue
+.db
+.sqlite3
