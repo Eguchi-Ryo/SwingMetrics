@@ -7,23 +7,27 @@
     <div class="page-header">
       <div>
         <h1>お手本打撃ライブラリ</h1>
-        <p>登録されたお手本動画は単独で事前解析され、解析結果画面でいつでも2画面比較として呼び出せます。</p>
+        <p>公式お手本は全員に公開されます。ログインすると、自分専用のお手本動画も登録できます。</p>
+        {% if is_guest %}<p class="chart-note">ゲストでも公式お手本を見て比較できます。自分用のお手本登録には<a href="{{ url_for('main.user_login') }}">ログイン</a>してください。</p>{% endif %}
       </div>
-      <button class="primary-btn" type="button" onclick="document.getElementById('addModelModal').showModal()">+ お手本動画を追加</button>
+      {% if can_contribute %}
+        <button class="primary-btn" type="button" onclick="document.getElementById('addModelModal').showModal()">+ お手本動画を追加</button>
+      {% endif %}
     </div>
 
     <div class="panel">
       <div class="model-grid">
         {% for model in models %}
-          <article class="card" style="position: relative;">
+          <article class="card" data-benchmark-id="{{ model.id }}" style="position: relative;">
             <div class="card-media">
               <span class="card-badge">{{ model.sport }}</span>
               <span class="score-badge">{{ model.angle }}</span>
               
-              {% if not model.is_system %}
+              {% if model.id in manageable_model_ids %}
                 <button 
                   type="button" 
                   onclick="deleteModel(event, '{{ model.id }}')"
+                  data-csrf-token="{{ csrf_token() }}"
                   style="position: absolute; top: 8px; right: 8px; background: rgba(239,68,68,0.9); color: white; border: none; font-size: 11px; padding: 3px 8px; border-radius: 4px; cursor: pointer; z-index: 10;">
                   削除
                 </button>
@@ -39,16 +43,27 @@
             </div>
             <div class="card-body">
               <h3 style="margin: 8px 0 4px;">{{ model.name }}</h3>
+              <span class="badge {% if model.is_official %}green{% else %}blue{% endif %}">
+                {% if model.is_official %}公式{% else %}自分のみ{% endif %}
+              </span>
+              <p class="benchmark-status" style="font-size: 12px; color: #94a3b8; margin: 0 0 4px;" {% if model.status != 'processing' %}hidden{% endif %}>
+                {% if model.status == 'processing' %}AI解析中…{% elif model.status == 'error' %}AI解析に失敗しました{% endif %}
+              </p>
               <p style="font-size: 12px; color: #94a3b8; margin: 0;">基準アタック角: {{ model.target_angle | default(10.0) }}°</p>
             </div>
           </article>
+        {% else %}
+          <p style="grid-column: 1 / -1; color: #94a3b8;">お手本動画はまだ登録されていません。</p>
         {% endfor %}
       </div>
     </div>
 
+    {% if can_contribute %}
     <dialog id="addModelModal" style="padding: 24px; border-radius: 8px; background: #1e293b; color: #f8fafc; border: 1px solid #334155; max-width: 440px; width: 90%;">
       <form method="POST" action="{{ url_for('main.add_model') }}" enctype="multipart/form-data">
-        <h3 style="margin-top: 0; margin-bottom: 16px;">お手本打撃動画の登録 (事前AI解析)</h3>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <h3 style="margin-top: 0; margin-bottom: 16px;">{% if is_admin %}公式{% else %}自分用{% endif %}お手本動画の登録</h3>
+        <p style="font-size: 12px; color: #cbd5e1;">{% if is_admin %}登録した動画と解析結果は全ユーザーに公開されます。{% else %}登録した動画と解析結果は自分だけが閲覧できます。{% endif %}アップロード後にAI解析を実行します。</p>
         
         <div style="margin-bottom: 12px;">
           <label style="display: block; font-size: 13px; margin-bottom: 4px; color: #cbd5e1;">お手本名 / 選手名</label>
@@ -71,18 +86,63 @@
 
         <div style="display: flex; gap: 8px; justify-content: flex-end;">
           <button type="button" class="secondary-btn" onclick="document.getElementById('addModelModal').close()">キャンセル</button>
-          <button type="submit" class="primary-btn">登録 &amp; 事前解析</button>
+          <button type="submit" class="primary-btn">登録してAI解析</button>
         </div>
       </form>
     </dialog>
+    {% endif %}
   </main>
 
   <script>
+    const processingCards = document.querySelectorAll('.benchmark-status:not([hidden])');
+    if (processingCards.length > 0) {
+      const refreshBenchmarkCards = async () => {
+        try {
+          const response = await fetch('/api/models', { cache: 'no-store' });
+          if (!response.ok) return;
+          const models = await response.json();
+          let stillProcessing = false;
+          for (const model of models) {
+            const card = document.querySelector(`[data-benchmark-id="${CSS.escape(model.id)}"]`);
+            if (!card) continue;
+            const status = card.querySelector('.benchmark-status');
+            if (model.status === 'processing') {
+              stillProcessing = true;
+              continue;
+            }
+            if (status) {
+              status.hidden = false;
+              status.textContent = model.status === 'error' ? 'AI解析に失敗しました' : '';
+              if (model.status === 'completed') status.hidden = true;
+            }
+            if (model.status === 'completed') {
+              const video = card.querySelector('video');
+              if (video && video.getAttribute('src') !== model.video_url) {
+                video.src = model.video_url;
+                video.load();
+              }
+              const angle = card.querySelector('.card-body > p:last-child');
+              if (angle) angle.textContent = `基準アタック角: ${Number(model.target_angle || 0).toFixed(1)}°`;
+            }
+          }
+          if (!stillProcessing) clearInterval(pollTimer);
+        } catch (error) {
+          console.error('Benchmark status polling failed:', error);
+        }
+      };
+      const pollTimer = setInterval(refreshBenchmarkCards, 2500);
+      refreshBenchmarkCards();
+    }
+
     function deleteModel(event, modelId) {
       event.preventDefault();
       if (!confirm('このお手本動画を削除しますか？')) return;
 
-      fetch(`/api/models/${modelId}/delete`, { method: 'POST' })
+      const button = event.currentTarget;
+      fetch(`/api/models/${modelId}/delete`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': button.dataset.csrfToken }
+      })
         .then(res => {
           if (res.ok) window.location.reload();
           else alert('削除できませんでした');

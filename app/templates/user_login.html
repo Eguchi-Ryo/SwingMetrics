@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block title %}SwingMetrics AI - ログイン{% endblock %}
+
+{% block content %}
+  <main class="page-main">
+    <section class="form-card" style="max-width: 480px; margin: 2rem auto;">
+      <h1>ログイン</h1>
+      <p>ゲスト中の解析履歴をアカウントに引き継ぎ、別の端末からも利用できます。ログインすると自分用のお手本動画も登録できます。</p>
+      {% if error %}<p role="alert" style="color: #fca5a5;">{{ error }}</p>{% endif %}
+      <form class="form-grid" method="post" action="{{ url_for('main.user_login') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <input type="hidden" name="next" value="{{ next_url }}" />
+        <div class="field">
+          <label for="username">ユーザー名</label>
+          <input id="username" name="username" type="text" autocomplete="username" required />
+        </div>
+        <div class="field">
+          <label for="password">パスワード</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required />
+        </div>
+        <div class="submit-row"><button type="submit" class="primary-btn">ログイン</button></div>
+      </form>
+    </section>
+  </main>
+{% endblock %}

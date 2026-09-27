@@ -55,7 +55,9 @@
                 <select id="benchmarkSelector" style="background: #1e293b; color: #fff; border: 1px solid #475569; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
                   <option value="">なし (単体1画面表示)</option>
                   {% for m in benchmark_models %}
-                    <option value="{{ m.id }}">{{ m.name }}</option>
+                    <option value="{{ m.id }}" {% if m.status == 'processing' %}disabled{% endif %}>
+                      {{ m.name }}{% if m.status == 'processing' %} (AI解析中){% elif m.status == 'error' %} (解析失敗){% endif %}
+                    </option>
                   {% endfor %}
                 </select>
               </div>

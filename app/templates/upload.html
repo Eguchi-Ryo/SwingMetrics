@@ -8,11 +8,13 @@
       <div>
         <h1>野球 打撃スイング動画アップロード</h1>
         <p>バッティング動画をアップロードしてください。AIが骨格運動学から打撃4大幾何学指標を自動算出します。</p>
+        {% if is_guest %}<p class="chart-note">ゲスト利用中です。解析と履歴の閲覧にログインは不要です。ログインすると、このブラウザーの履歴をアカウントに引き継げます。</p>{% endif %}
       </div>
     </div>
 
     <section class="form-card">
       <form class="form-grid" method="post" action="{{ url_for('main.upload') }}" enctype="multipart/form-data">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
         
         <div class="upload-dropzone" style="grid-column: 1 / -1;">
           <strong>打撃動画ファイルをドラッグ＆ドロップ</strong>

@@ -8,6 +8,7 @@
       <div>
         <h1>ダッシュボード</h1>
         <p>直近のスイング改善傾向と解析履歴を確認できます。</p>
+        {% if is_guest %}<p class="chart-note">ゲスト利用中の履歴です。このブラウザーで利用できます。ログインすると履歴をアカウントに引き継ぎ、別の端末からも確認できます。</p>{% endif %}
       </div>
       <a class="primary-btn" href="{{ url_for('main.upload') }}">+ 新しく解析する</a>
     </div>
@@ -109,7 +110,7 @@
 
       fetch(`/api/analysis/${jobId}/delete`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' }
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token() }}' }
       })
       .then(response => {
         if (response.ok) {

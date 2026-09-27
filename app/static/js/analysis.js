@@ -276,4 +276,41 @@ document.addEventListener('DOMContentLoaded', () => {
       },
     });
   }
+
+  if (benchSelector && benchmarkModels.some(model => model.status === 'processing')) {
+    const pollBenchmarks = async () => {
+      try {
+        const response = await fetch('/api/models', { cache: 'no-store' });
+        if (!response.ok) return;
+        const latestModels = await response.json();
+        const selectedId = benchSelector.value;
+        const previousSelected = benchmarkModels.find(model => model.id === selectedId);
+        const latestSelected = latestModels.find(model => model.id === selectedId);
+        const selectedModelChanged = JSON.stringify(previousSelected) !== JSON.stringify(latestSelected);
+        benchmarkModels.splice(0, benchmarkModels.length, ...latestModels);
+
+        benchSelector.replaceChildren(new Option('なし (単体1画面表示)', ''));
+        for (const model of benchmarkModels) {
+          const statusLabel = model.status === 'processing'
+            ? ' (AI解析中)'
+            : model.status === 'error' ? ' (解析失敗)' : '';
+          const option = new Option(`${model.name}${statusLabel}`, model.id);
+          option.disabled = model.status !== 'completed';
+          benchSelector.add(option);
+        }
+
+        const selectedModel = benchmarkModels.find(model => model.id === selectedId);
+        benchSelector.value = selectedModel?.status === 'completed' ? selectedId : '';
+        if (selectedModelChanged) updateBenchmarkUI();
+
+        if (!benchmarkModels.some(model => model.status === 'processing')) {
+          clearInterval(benchmarkPollTimer);
+        }
+      } catch (error) {
+        console.error('Benchmark analysis polling failed:', error);
+      }
+    };
+    const benchmarkPollTimer = setInterval(pollBenchmarks, 2500);
+    pollBenchmarks();
+  }
 });

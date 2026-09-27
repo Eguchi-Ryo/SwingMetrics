@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}SwingMetrics AI - アカウント登録{% endblock %}
+
+{% block content %}
+  <main class="page-main">
+    <section class="form-card" style="max-width: 480px; margin: 2rem auto;">
+      <h1>アカウント登録</h1>
+      <p>ゲスト中の解析履歴はアカウント作成後に引き継がれます。ログインすると、自分用のお手本動画を登録して別の端末からも利用できます。</p>
+      {% if error %}<p role="alert" style="color: #fca5a5;">{{ error }}</p>{% endif %}
+      <form class="form-grid" method="post" action="{{ url_for('main.user_register') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="field">
+          <label for="username">ユーザー名</label>
+          <input id="username" name="username" type="text" minlength="3" maxlength="32" pattern="[A-Za-z0-9_.-]{3,32}" autocomplete="username" required />
+          <small>英数字と . _ - の3〜32文字</small>
+        </div>
+        <div class="field">
+          <label for="password">パスワード</label>
+          <input id="password" name="password" type="password" minlength="12" autocomplete="new-password" required />
+          <small>12文字以上</small>
+        </div>
+        <div class="submit-row"><button type="submit" class="primary-btn">アカウントを作成</button></div>
+      </form>
+    </section>
+  </main>
+{% endblock %}

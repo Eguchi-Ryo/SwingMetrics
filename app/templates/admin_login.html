@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}SwingMetrics AI - 管理者ログイン{% endblock %}
+
+{% block content %}
+  <main class="page-main">
+    <section class="form-card" style="max-width: 480px; margin: 2rem auto;">
+      <h1>管理者ログイン</h1>
+      <p>お手本動画の追加・削除には管理者ログインが必要です。</p>
+      {% if error %}
+        <p role="alert" style="color: #fca5a5;">{{ error }}</p>
+      {% endif %}
+      <form class="form-grid" method="post" action="{{ url_for('main.admin_login') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+        <div class="field">
+          <label for="username">ユーザー名</label>
+          <input id="username" name="username" type="text" autocomplete="username" required />
+        </div>
+        <div class="field">
+          <label for="password">パスワード</label>
+          <input id="password" name="password" type="password" autocomplete="current-password" required />
+        </div>
+        <div class="submit-row">
+          <button type="submit" class="primary-btn">ログイン</button>
+        </div>
+      </form>
+    </section>
+  </main>
+{% endblock %}

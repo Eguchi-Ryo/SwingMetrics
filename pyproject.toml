@@ -12,7 +12,6 @@ dependencies = [
     "numpy>=2.4.6",
     "opencv-python>=5.0.0.93",
     "passlib[bcrypt]>=1.7.4",
-    "psycopg2-binary>=2.9.12",
     "pydantic[email]>=2.13.4",
     "pyjwt>=2.13.0",
     "pymysql>=1.2.0",

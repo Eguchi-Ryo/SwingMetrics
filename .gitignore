@@ -4,3 +4,7 @@ dist
 .DS_Store
 .venv
 .continue
+.env
+.env.*
+!.env.example
+data/.flask_secret_key

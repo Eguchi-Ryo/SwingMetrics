@@ -1,8 +1,26 @@
-version: '3.8'
-
 services:
+  db:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-swingmetrics}
+      MYSQL_USER: ${MYSQL_USER:-swingmetrics}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-swingmetrics_dev_password}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-swingmetrics_dev_root_password}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h 127.0.0.1 -u root -p$$MYSQL_ROOT_PASSWORD"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
   web:
     build: .
+    depends_on:
+      db:
+        condition: service_healthy
     ports:
       - "5001:5001"
     volumes:
@@ -14,3 +32,16 @@ services:
       - FLASK_ENV=development
       - FLASK_DEBUG=1
       - PYTHONUNBUFFERED=1
+      - MYSQL_HOST=db
+      - MYSQL_PORT=3306
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-swingmetrics}
+      - MYSQL_USER=${MYSQL_USER:-swingmetrics}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-swingmetrics_dev_password}
+      - SECRET_KEY=${SECRET_KEY:-}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-}
+      - ADMIN_LOGIN_PATH=${ADMIN_LOGIN_PATH:-}
+      - SESSION_COOKIE_SECURE=${SESSION_COOKIE_SECURE:-false}
+
+volumes:
+  mysql_data:
