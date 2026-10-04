@@ -9,18 +9,32 @@ def calculate_baseball_kinematics(frames_keypoints, impact_idx=None):
     total_frames = len(frames_keypoints) if frames_keypoints else 0
     if total_frames == 0:
         return {
-            "attack_angle": 10.5,
-            "attack_direction": 1.2,
-            "vba": -31.5,
-            "orthogonality": 87.8,
-            "metrics": build_metrics_list(10.5, 1.2, -31.5, 87.8),
+            "attack_angle": 999,
+            "attack_direction": 999,
+            "vba": 999,
+            "orthogonality": 999,
+            "metrics": build_metrics_list(999, 999, 999, 999),
             "frames": [{"frame_index": i, "spine_angle": round(35.0 + math.sin(i / 5.0) * 4.0, 1)} for i in range(30)],
-            "overall_score": 88
+            "overall_score": 000
         }
 
     if impact_idx is None or impact_idx >= total_frames:
-        impact_idx = int(total_frames * 0.6)
-
+        if total_frames < 3:
+            impact_idx = max(0, total_frames - 1)
+        else:
+            # 各フレームの手首中心座標 (左右手首 9, 10 の中点) を取得
+            wrist_positions = []
+            for kp in frames_keypoints:
+                kp = np.array(kp)
+                wrists_center = (kp[9] + kp[10]) / 2.0
+                wrist_positions.append(wrists_center)
+            wrist_positions = np.array(wrist_positions)
+            buttom_wrist_pos = np.min(wrist_positions[:, 1])  # y座標の最小値 (下方向)
+            # インパクトコマは、手首が最も下にくる2フレーム前と仮定する
+            impact_idx = np.argmin(wrist_positions[:, 1])
+            if impact_idx > 0 and impact_idx < total_frames - 1:
+                impact_idx = int(round((impact_idx - 1 + impact_idx + impact_idx + 1) / 3.0)) + 2
+            
     # 1. 各フレームの体幹傾斜角度（時系列グラフ用）
     frames_data = []
     for idx, kp in enumerate(frames_keypoints):
@@ -32,29 +46,30 @@ def calculate_baseball_kinematics(frames_keypoints, impact_idx=None):
         frames_data.append({"frame_index": idx, "spine_angle": round(tilt, 1)})
 
     # 2. インパクトコマの幾何学計算
-    cur_kp = np.array(frames_keypoints[impact_idx])
+    # インパクト前には手首が最下点にくる。その2フレーム後にインパクトがあると仮定する。
+    imp_kp = np.array(frames_keypoints[impact_idx])
     prev_idx = max(0, impact_idx - 2)
     prev_kp = np.array(frames_keypoints[prev_idx])
 
-    shoulder_c = (cur_kp[5] + cur_kp[6]) / 2.0
-    hip_c = (cur_kp[11] + cur_kp[12]) / 2.0
+    shoulder_c = (imp_kp[5] + imp_kp[6]) / 2.0
+    hip_c = (imp_kp[11] + imp_kp[12]) / 2.0
     trunk_vec = hip_c - shoulder_c
 
-    cur_wrists = (cur_kp[9] + cur_kp[10]) / 2.0
+    cur_wrists = (imp_kp[9] + imp_kp[10]) / 2.0
     prev_wrists = (prev_kp[9] + prev_kp[10]) / 2.0
     hand_move = cur_wrists - prev_wrists
 
     # ① アタック・アングル (Attack Angle)
-    attack_angle = math.degrees(math.atan2(-hand_move[1], abs(hand_move[0]) + 1e-5))
+    attack_angle = math.degrees(math.atan2(abs(hand_move[1]), abs(hand_move[0]) + 1e-5))
     attack_angle = round(max(-15.0, min(25.0, attack_angle)), 1)
 
     # ② アタック・ディレクション (Attack Direction)
-    shoulder_vec = cur_kp[6] - cur_kp[5]
+    shoulder_vec = imp_kp[6] - imp_kp[5]
     attack_direction = math.degrees(math.atan2(hand_move[0], abs(shoulder_vec[0]) + 1e-5)) - 45.0
     attack_direction = round(max(-20.0, min(20.0, attack_direction)), 1)
 
     # ③ スイング・パス・チルト (垂直バット角度 / VBA)
-    wrist_diff = cur_kp[10] - cur_kp[9]
+    wrist_diff = imp_kp[10] - imp_kp[9]
     vba = -abs(math.degrees(math.atan2(abs(wrist_diff[1]), abs(wrist_diff[0]) + 1e-5)))
     vba = round(max(-55.0, min(-15.0, vba)), 1)
 
