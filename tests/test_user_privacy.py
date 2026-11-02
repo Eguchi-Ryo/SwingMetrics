@@ -5,6 +5,7 @@ from urllib.parse import urlparse, parse_qs
 import pytest
 
 from app import create_app
+from app.services.analysis_job import update_analysis
 from app.services.benchmark_service import list_benchmark_models, save_benchmark_model
 from app.services.database import dispose_database
 
@@ -149,3 +150,110 @@ def test_users_only_see_their_own_examples_analyses_and_videos(app):
     )
     assert own_delete.status_code == 200
     assert not private_example_path.exists()
+
+
+def test_analysis_comparison_lists_only_owners_prior_completed_uploads(app):
+    first = app.test_client()
+    _, first_csrf = register(first, "compare-first")
+    uploaded_ids = []
+    for title in ("自分の過去スイング", "比較対象の現在スイング"):
+        response = first.post(
+            "/upload",
+            data={
+                "csrf_token": first_csrf,
+                "title": title,
+                "file": (BytesIO(title.encode()), f"{len(uploaded_ids)}.mp4"),
+            },
+            content_type="multipart/form-data",
+        )
+        assert response.status_code == 302
+        uploaded_ids.append(int(parse_qs(urlparse(response.headers["Location"]).query)["id"][0]))
+        with app.app_context():
+            update_analysis(uploaded_ids[-1], {"status": "completed", "frames": [{"spine_angle": 22.0}]})
+
+    second = app.test_client()
+    _, second_csrf = register(second, "compare-second")
+    other_upload = second.post(
+        "/upload",
+        data={
+            "csrf_token": second_csrf,
+            "title": "他人の非公開スイング",
+            "file": (BytesIO(b"other user's video"), "other.mp4"),
+        },
+        content_type="multipart/form-data",
+    )
+    assert other_upload.status_code == 302
+    other_id = int(parse_qs(urlparse(other_upload.headers["Location"]).query)["id"][0])
+    with app.app_context():
+        update_analysis(other_id, {"status": "completed"})
+
+    html = first.get(f"/analysis?id={uploaded_ids[1]}").get_data(as_text=True)
+    assert "自分の過去スイング" in html
+    assert "他人の非公開スイング" not in html
+    assert f"analysis:{uploaded_ids[0]}" in html
+    assert f"analysis:{uploaded_ids[1]}" not in html
+
+
+def test_analysis_can_be_promoted_to_private_benchmark_with_independent_video(app):
+    first = app.test_client()
+    owner_id, csrf = register(first, "promote-first")
+    upload = first.post(
+        "/upload",
+        data={
+            "csrf_token": csrf,
+            "title": "良いスイングを保存",
+            "file": (BytesIO(b"raw swing"), "swing.mp4"),
+        },
+        content_type="multipart/form-data",
+    )
+    analysis_id = int(parse_qs(urlparse(upload.headers["Location"]).query)["id"][0])
+    with app.app_context():
+        annotated_path = Path(app.config["UPLOAD_FOLDER"]) / "annotated-swing.mp4"
+        annotated_path.write_bytes(b"annotated swing")
+        update_analysis(
+            analysis_id,
+            {
+                "status": "completed",
+                "video_url": "/videos/annotated-swing.mp4",
+                "annotated_video_url": "/videos/annotated-swing.mp4",
+                "frames": [{"frame_index": 0, "spine_angle": 28.5}],
+                "metrics": [],
+            },
+        )
+
+    response = first.post(
+        f"/api/analysis/{analysis_id}/promote",
+        headers={"X-CSRFToken": csrf},
+    )
+    assert response.status_code == 201
+    model_id = response.json["model_id"]
+    with app.app_context():
+        model = next(
+            model for model in list_benchmark_models(owner_key=f"user:{owner_id}")
+            if model["id"] == model_id
+        )
+    copied_path = Path(app.config["UPLOAD_FOLDER"]) / model["video_url"].rsplit("/", 1)[1]
+    assert model["is_official"] is False
+    assert model["source_analysis_id"] == analysis_id
+    assert model["frames"] == [{"frame_index": 0, "spine_angle": 28.5}]
+    assert copied_path.read_bytes() == b"annotated swing"
+
+    second = app.test_client()
+    register(second, "promote-second")
+    assert second.get(model["video_url"]).status_code == 404
+    assert "良いスイングを保存" not in second.get("/models").get_data(as_text=True)
+
+    deleted_analysis = first.post(
+        f"/api/analysis/{analysis_id}/delete",
+        headers={"X-CSRFToken": csrf},
+    )
+    assert deleted_analysis.status_code == 200
+    assert copied_path.exists()
+    assert first.get(model["video_url"]).status_code == 200
+
+    deleted_model = first.post(
+        f"/api/models/{model_id}/delete",
+        headers={"X-CSRFToken": csrf},
+    )
+    assert deleted_model.status_code == 200
+    assert not copied_path.exists()

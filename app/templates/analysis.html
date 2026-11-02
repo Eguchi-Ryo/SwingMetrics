@@ -14,6 +14,7 @@
   </div>
   <script id="frames-data" type="application/json">{{ analysis.frames | default([]) | tojson | safe }}</script>
   <script id="benchmark-models-data" type="application/json">{{ benchmark_models | default([]) | tojson | safe }}</script>
+  <script id="own-references-data" type="application/json">{{ own_references | default([]) | tojson | safe }}</script>
 
   <main class="page-main">
 
@@ -51,14 +52,21 @@
             <div class="video-player-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
               <h2>スイング動作比較</h2>
               <div class="player-controls-top" style="display: flex; gap: 8px; align-items: center;">
-                <label style="font-size: 13px; color: #cbd5e1;">お手本と比較:</label>
+                <label for="benchmarkSelector" style="font-size: 13px; color: #cbd5e1;">比較動画:</label>
                 <select id="benchmarkSelector" style="background: #1e293b; color: #fff; border: 1px solid #475569; padding: 4px 8px; border-radius: 4px; font-size: 12px;">
                   <option value="">なし (単体1画面表示)</option>
+                  {% if own_references %}<optgroup label="自分の過去の解析動画">
+                    {% for ref in own_references %}
+                      <option value="{{ ref.id }}">{{ ref.name }}</option>
+                    {% endfor %}
+                  </optgroup>{% endif %}
+                  {% if benchmark_models %}<optgroup label="お手本">
                   {% for m in benchmark_models %}
                     <option value="{{ m.id }}" {% if m.status == 'processing' %}disabled{% endif %}>
                       {{ m.name }}{% if m.status == 'processing' %} (AI解析中){% elif m.status == 'error' %} (解析失敗){% endif %}
                     </option>
                   {% endfor %}
+                  </optgroup>{% endif %}
                 </select>
               </div>
             </div>
@@ -178,6 +186,16 @@
             <button type="button" class="primary-btn" id="saveMemoBtn">メモを保存</button>
             <span id="memoSaveStatus" role="status" aria-live="polite"></span>
           </section>
+          {% if can_promote and analysis.status == 'completed' %}
+          <section class="metrics-card memo-card promote-card">
+            <h2>自分用のお手本</h2>
+            <p>この解析動画を自分専用のお手本として保存します。他のユーザーには公開されません。</p>
+            <button type="button" class="secondary-btn" id="promoteAnalysisBtn" {% if already_promoted %}disabled{% endif %}>
+              {% if already_promoted %}自分用お手本に登録済み{% else %}この動画を自分用お手本にする{% endif %}
+            </button>
+            <span id="promoteStatus" role="status" aria-live="polite"></span>
+          </section>
+          {% endif %}
         </aside>
 
       </div>

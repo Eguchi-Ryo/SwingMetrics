@@ -38,6 +38,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const bmModelsDataEl = document.getElementById('benchmark-models-data');
   const benchmarkModels = bmModelsDataEl ? JSON.parse(bmModelsDataEl.textContent || '[]') : [];
+  const ownReferencesEl = document.getElementById('own-references-data');
+  const ownReferences = ownReferencesEl ? JSON.parse(ownReferencesEl.textContent || '[]') : [];
 
   const analysisData = {
     duration_ms: parseFloat(configEl.dataset.durationMs || '3500'),
@@ -86,6 +88,26 @@ document.addEventListener('DOMContentLoaded', () => {
       if (memoSaveStatus) memoSaveStatus.textContent = error.message;
     } finally {
       saveMemoBtn.disabled = false;
+    }
+  });
+
+  const promoteBtn = document.getElementById('promoteAnalysisBtn');
+  const promoteStatus = document.getElementById('promoteStatus');
+  promoteBtn?.addEventListener('click', async () => {
+    promoteBtn.disabled = true;
+    if (promoteStatus) promoteStatus.textContent = '登録中…';
+    try {
+      const response = await fetch(`/api/analysis/${jobId}/promote`, {
+        method: 'POST',
+        headers: { 'X-CSRFToken': configEl.dataset.csrfToken || '' },
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || '登録できませんでした。');
+      promoteBtn.textContent = '自分用お手本に登録済み';
+      if (promoteStatus) promoteStatus.textContent = '自分だけが参照できます。';
+    } catch (error) {
+      promoteBtn.disabled = false;
+      if (promoteStatus) promoteStatus.textContent = error.message;
     }
   });
 
@@ -202,14 +224,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateBenchmarkUI() {
     const selectedId = benchSelector ? benchSelector.value : '';
-    currentBenchmark = benchmarkModels.find(m => m.id === selectedId) || null;
+    currentBenchmark = [...benchmarkModels, ...ownReferences].find(m => String(m.id) === selectedId) || null;
 
     if (currentBenchmark && currentBenchmark.video_url && benchVideo && benchFrame && videoGrid) {
       videoGrid.style.gridTemplateColumns = '1fr 1fr';
       benchFrame.style.display = 'block';
       benchVideo.src = currentBenchmark.video_url;
       benchVideo.load();
-      if (benchEl) benchEl.textContent = `${(currentBenchmark.target_angle || 0).toFixed(1)}°`;
+      if (benchEl) benchEl.textContent = `${Number(currentBenchmark.target_angle || 0).toFixed(1)}°`;
     } else if (benchFrame && videoGrid) {
       videoGrid.style.gridTemplateColumns = '1fr';
       benchFrame.style.display = 'none';
@@ -235,10 +257,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (swingChart.data.datasets.length > 1) {
           swingChart.data.datasets[1].data = benchCurve;
-          swingChart.data.datasets[1].label = `お手本 (${currentBenchmark.name})`;
+          swingChart.data.datasets[1].label = `比較 (${currentBenchmark.name})`;
         } else {
           swingChart.data.datasets.push({
-            label: `お手本 (${currentBenchmark.name})`,
+            label: `比較 (${currentBenchmark.name})`,
             data: benchCurve,
             borderColor: '#34d399',
             borderDash: [4, 4],
@@ -310,6 +332,32 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (benchSelector && benchmarkModels.some(model => model.status === 'processing')) {
+    function repopulateBenchmarkSelector(selectedId) {
+      benchSelector.replaceChildren(new Option('なし (単体1画面表示)', ''));
+      if (ownReferences.length > 0) {
+        const group = document.createElement('optgroup');
+        group.label = '自分の過去の解析動画';
+        for (const reference of ownReferences) {
+          group.add(new Option(reference.name, reference.id));
+        }
+        benchSelector.add(group);
+      }
+      if (benchmarkModels.length > 0) {
+        const group = document.createElement('optgroup');
+        group.label = 'お手本';
+        for (const model of benchmarkModels) {
+          const statusLabel = model.status === 'processing'
+            ? ' (AI解析中)'
+            : model.status === 'error' ? ' (解析失敗)' : '';
+          const option = new Option(`${model.name}${statusLabel}`, model.id);
+          option.disabled = model.status !== 'completed';
+          group.add(option);
+        }
+        benchSelector.add(group);
+      }
+      benchSelector.value = selectedId;
+    }
+
     const pollBenchmarks = async () => {
       try {
         const response = await fetch('/api/models', { cache: 'no-store' });
@@ -321,18 +369,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const selectedModelChanged = JSON.stringify(previousSelected) !== JSON.stringify(latestSelected);
         benchmarkModels.splice(0, benchmarkModels.length, ...latestModels);
 
-        benchSelector.replaceChildren(new Option('なし (単体1画面表示)', ''));
-        for (const model of benchmarkModels) {
-          const statusLabel = model.status === 'processing'
-            ? ' (AI解析中)'
-            : model.status === 'error' ? ' (解析失敗)' : '';
-          const option = new Option(`${model.name}${statusLabel}`, model.id);
-          option.disabled = model.status !== 'completed';
-          benchSelector.add(option);
-        }
-
-        const selectedModel = benchmarkModels.find(model => model.id === selectedId);
-        benchSelector.value = selectedModel?.status === 'completed' ? selectedId : '';
+        repopulateBenchmarkSelector(selectedId);
+        const selectedModel = benchmarkModels.find(model => String(model.id) === selectedId);
+        if (selectedModel && selectedModel.status !== 'completed') benchSelector.value = '';
         if (selectedModelChanged) updateBenchmarkUI();
 
         if (!benchmarkModels.some(model => model.status === 'processing')) {

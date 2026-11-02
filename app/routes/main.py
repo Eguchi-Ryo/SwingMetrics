@@ -1,6 +1,7 @@
 import uuid
 import re
 import math
+import shutil
 import subprocess
 from pathlib import Path
 from urllib.parse import urlsplit
@@ -275,6 +276,62 @@ def save_analysis_memo(job_id):
     return jsonify({"success": True, "memo": memo})
 
 
+@main_bp.route("/api/analysis/<int:job_id>/promote", methods=["POST"])
+@contributor_required
+@csrf_protected
+def promote_analysis_to_benchmark(job_id):
+    owner_key = current_owner_key()
+    analysis_data = get_job_analysis(job_id, owner_key=owner_key)
+    if not analysis_data:
+        return jsonify({"error": "Analysis not found"}), 404
+    if analysis_data.get("status") != "completed":
+        return jsonify({"error": "解析完了後に登録できます。"}), 409
+
+    models = list_benchmark_models(owner_key=owner_key)
+    existing = next(
+        (model for model in models if model.get("source_analysis_id") == job_id),
+        None,
+    )
+    if existing:
+        return jsonify({"success": True, "model_id": existing["id"], "already_exists": True})
+
+    video_url = analysis_data.get("annotated_video_url") or analysis_data.get("video_url")
+    video_filename = Path(urlsplit(video_url or "").path).name
+    upload_dir = Path(current_app.config["UPLOAD_FOLDER"]).resolve()
+    source_path = (upload_dir / video_filename).resolve()
+    if not video_filename or source_path.parent != upload_dir or not source_path.is_file():
+        return jsonify({"error": "解析動画が見つかりません。"}), 404
+
+    suffix = source_path.suffix or ".mp4"
+    copied_path = upload_dir / f"personal_benchmark_{uuid.uuid4().hex}{suffix}"
+    try:
+        shutil.copy2(source_path, copied_path)
+        user_id = session.get("user_id")
+        benchmark = save_benchmark_model(
+            {
+                "name": analysis_data.get("title") or f"自分用お手本 #{job_id}",
+                "sport": analysis_data.get("sport", "野球 (打撃)"),
+                "video_url": f"/videos/{copied_path.name}",
+                "raw_video_url": f"/videos/{copied_path.name}",
+                "target_angle": float(analysis_data.get("current_angle") or 0),
+                "frames": analysis_data.get("frames") or [],
+                "metrics": analysis_data.get("metrics") or [],
+                "status": "completed",
+                "progress": 100,
+                "owner_id": user_id,
+                "owner_key": owner_key,
+                "is_official": False,
+                "source_analysis_id": job_id,
+            }
+        )
+    except Exception:
+        copied_path.unlink(missing_ok=True)
+        current_app.logger.exception("自分用お手本の登録に失敗しました")
+        return jsonify({"error": "自分用お手本を保存できませんでした。"}), 500
+
+    return jsonify({"success": True, "model_id": benchmark["id"]}), 201
+
+
 @main_bp.route("/upload", methods=["GET", "POST"])
 @csrf_protected
 def upload():
@@ -455,9 +512,29 @@ def analysis():
         return "Analysis not found", 404
 
     benchmark_owner_key = None if session.get("is_admin") is True else owner_key
+    own_references = [
+        {
+            "id": f"analysis:{item['id']}",
+            "name": item.get("title") or f"解析 #{item['id']}",
+            "video_url": item.get("annotated_video_url") or item.get("video_url"),
+            "frames": item.get("frames") or [],
+            "target_angle": item.get("current_angle") or 0,
+        }
+        for item in job_history(owner_key=owner_key)
+        if item.get("id") != analysis_data.get("id")
+        and item.get("status") == "completed"
+        and (item.get("annotated_video_url") or item.get("video_url"))
+    ]
+    benchmark_models = list_benchmark_models(owner_key=benchmark_owner_key)
 
     return render_template(
         "analysis.html",
         analysis=analysis_data,
-        benchmark_models=list_benchmark_models(owner_key=benchmark_owner_key),
+        benchmark_models=benchmark_models,
+        own_references=own_references,
+        can_promote=type(session.get("user_id")) is int,
+        already_promoted=any(
+            model.get("source_analysis_id") == analysis_data.get("id")
+            for model in benchmark_models
+        ),
     )
