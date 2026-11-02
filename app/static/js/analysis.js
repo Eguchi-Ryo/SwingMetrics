@@ -57,6 +57,38 @@ document.addEventListener('DOMContentLoaded', () => {
   const curTimeEl = document.getElementById('currentTimeText');
   const totalTimeEl = document.getElementById('totalTimeText');
 
+  document.querySelectorAll('.spine-angle-tooltip .help-circle-btn').forEach(button => {
+    const tooltip = button.closest('.tooltip-wrap');
+    button.addEventListener('click', () => {
+      const isOpen = tooltip.classList.toggle('is-open');
+      button.setAttribute('aria-expanded', String(isOpen));
+    });
+  });
+
+  const memoInput = document.getElementById('analysisMemo');
+  const saveMemoBtn = document.getElementById('saveMemoBtn');
+  const memoSaveStatus = document.getElementById('memoSaveStatus');
+  saveMemoBtn?.addEventListener('click', async () => {
+    saveMemoBtn.disabled = true;
+    if (memoSaveStatus) memoSaveStatus.textContent = '保存中…';
+    try {
+      const response = await fetch(`/api/analysis/${jobId}/memo`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': configEl.dataset.csrfToken || '',
+        },
+        body: JSON.stringify({ memo: memoInput?.value || '' }),
+      });
+      if (!response.ok) throw new Error('メモを保存できませんでした。');
+      if (memoSaveStatus) memoSaveStatus.textContent = '保存しました';
+    } catch (error) {
+      if (memoSaveStatus) memoSaveStatus.textContent = error.message;
+    } finally {
+      saveMemoBtn.disabled = false;
+    }
+  });
+
   let currentBenchmark = null;
   let swingChart = null;
 

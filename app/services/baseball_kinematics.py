@@ -10,12 +10,10 @@ def calculate_baseball_kinematics(frames_keypoints, impact_idx=None):
     if total_frames == 0:
         return {
             "attack_angle": 999,
-            "attack_direction": 999,
             "vba": 999,
             "orthogonality": 999,
-            "metrics": build_metrics_list(999, 999, 999, 999),
+            "metrics": build_metrics_list(999, 999, 999),
             "frames": [{"frame_index": i, "spine_angle": round(35.0 + math.sin(i / 5.0) * 4.0, 1)} for i in range(30)],
-            "overall_score": 000
         }
 
     if impact_idx is None or impact_idx >= total_frames:
@@ -63,54 +61,31 @@ def calculate_baseball_kinematics(frames_keypoints, impact_idx=None):
     attack_angle = math.degrees(math.atan2(abs(hand_move[1]), abs(hand_move[0]) + 1e-5))
     attack_angle = round(max(-15.0, min(25.0, attack_angle)), 1)
 
-    # ② アタック・ディレクション (Attack Direction)
-    shoulder_vec = imp_kp[6] - imp_kp[5]
-    attack_direction = math.degrees(math.atan2(hand_move[0], abs(shoulder_vec[0]) + 1e-5)) - 45.0
-    attack_direction = round(max(-20.0, min(20.0, attack_direction)), 1)
-
-    # ③ スイング・パス・チルト (垂直バット角度 / VBA)
+    # ② スイング・パス・チルト (垂直バット角度 / VBA)
     wrist_diff = imp_kp[10] - imp_kp[9]
     vba = -abs(math.degrees(math.atan2(abs(wrist_diff[1]), abs(wrist_diff[0]) + 1e-5)))
     vba = round(max(-55.0, min(-15.0, vba)), 1)
 
-    # ④ バットと体の角度 (90度則)
+    # ③ バットと体の角度 (90度則)
     arm_vec = cur_wrists - shoulder_c
     cos_val = np.dot(trunk_vec, arm_vec) / (np.linalg.norm(trunk_vec) * np.linalg.norm(arm_vec) + 1e-5)
     orthogonality = round(math.degrees(math.acos(np.clip(cos_val, -1.0, 1.0))), 1)
 
-    # 総合スコア算出
-    score = 100
-    if not (5.0 <= attack_angle <= 15.0):
-        score -= min(25, int(abs(attack_angle - 10.0) * 2.5))
-    if not (-5.0 <= attack_direction <= 5.0):
-        score -= min(15, int(abs(attack_direction) * 1.5))
-    if not (80.0 <= orthogonality <= 90.0):
-        score -= min(25, int(abs(orthogonality - 85.0) * 2))
-    overall_score = max(50, min(98, score))
-
     return {
         "attack_angle": attack_angle,
-        "attack_direction": attack_direction,
         "vba": vba,
         "orthogonality": orthogonality,
-        "metrics": build_metrics_list(attack_angle, attack_direction, vba, orthogonality),
+        "metrics": build_metrics_list(attack_angle, vba, orthogonality),
         "frames": frames_data,
-        "overall_score": overall_score
     }
 
-def build_metrics_list(attack_angle, attack_direction, vba, orthogonality):
+def build_metrics_list(attack_angle, vba, orthogonality):
     return [
         {
             "label": "アタック・アングル (Attack Angle)",
             "value": f"{attack_angle:+.1f}°",
             "benchmark": "+5°〜+15°",
             "desc": "インパクト時のバット進入仰角。投球のダウンヒル軌道（約-6°）に合わせ、長打ゾーンを生み出す垂直角度です。"
-        },
-        {
-            "label": "アタック・ディレクション (Attack Direction)",
-            "value": f"{attack_direction:+.1f}°",
-            "benchmark": "-5°〜+5° (センター)",
-            "desc": "インパクト時の水平進入角度。センターライン（0°）に対し、適切なインサイドアウト軌道が作れているかを示します。"
         },
         {
             "label": "スイング・パス・チルト (垂直バット角度 / VBA)",

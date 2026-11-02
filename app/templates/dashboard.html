@@ -13,31 +13,13 @@
       <a class="primary-btn" href="{{ url_for('main.upload') }}">+ 新しく解析する</a>
     </div>
 
-    <section class="layout-grid">
-      <article class="panel">
-        <h2>アクティビティ概要</h2>
-        <div class="metric-grid">
-          <div class="metric-card">
-            <span>総解析本数</span>
-            <strong>{{ summary.total | default(0) }} <em>本</em></strong>
-          </div>
-          <div class="metric-card">
-            <span>平均スコア</span>
-            <strong>{{ summary.average | default(0) }} <em>pt</em></strong>
-          </div>
-        </div>
-        <div class="panel inner-panel">
-          <h2>近月の成果</h2>
-          <p>{{ trend_text }}</p>
-        </div>
-      </article>
-
-      <article class="panel">
-        <h2>前傾角度スコア 推移 (過去10回)</h2>
-        <div class="chart-box">
-          <canvas id="historyChart"></canvas>
-        </div>
-      </article>
+    <section class="panel activity-summary">
+      <h2>アクティビティ概要</h2>
+      <div class="metric-card">
+        <span>総解析本数</span>
+        <strong>{{ summary.total | default(0) }} <em>本</em></strong>
+      </div>
+      <p>{{ trend_text }}</p>
     </section>
 
     <section class="panel history-panel">
@@ -52,13 +34,11 @@
             <a href="{{ url_for('main.analysis', id=item.id) }}" class="card" aria-label="{{ item.title }}">
               <div class="card-media">
                 <span class="card-badge">{{ item.sport }}</span>
-                <span class="score-badge">Score {{ item.score }}</span>
               </div>
               <div class="card-body">
                 <h3>{{ item.title }}</h3>
                 <div class="card-footer">
                   <span>{{ item.timestamp }}</span>
-                  <span>{{ item.angle }}</span>
                 </div>
               </div>
             </a>
@@ -77,29 +57,6 @@
   </main>
 
   <script>
-    const chartData = {{ chart_config | tojson }};
-    const ctx = document.getElementById('historyChart');
-    if (ctx) {
-      new Chart(ctx, {
-        type: 'line',
-        data: chartData,
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            x: {
-              ticks: { color: '#94a3b8', font: { size: 10 } },
-              grid: { color: '#334155' }
-            },
-            y: {
-              ticks: { color: '#94a3b8', font: { size: 10 } },
-              grid: { color: '#334155' }
-            }
-          }
-        }
-      });
-    }
     function confirmDelete(event, jobId) {
       event.preventDefault();
       event.stopPropagation();

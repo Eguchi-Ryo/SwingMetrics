@@ -1,5 +1,7 @@
 import uuid
 import re
+import math
+import subprocess
 from pathlib import Path
 from urllib.parse import urlsplit
 
@@ -7,7 +9,6 @@ from flask import Blueprint, current_app, redirect, render_template, request, se
 from sqlalchemy.exc import IntegrityError
 from werkzeug.utils import secure_filename
 
-from app.data.options import FORM_OPTIONS
 from app.security import (
     account_required,
     admin_required,
@@ -23,7 +24,8 @@ from app.services.analysis_job import (
     list_history as job_history,
     save_analysis as save_job_analysis,
     get_analysis_by_id as get_job_analysis,
-    delete_analysis_by_id
+    delete_analysis_by_id,
+    update_analysis,
 )
 from app.services.benchmark_service import (
     can_view_benchmark_video,
@@ -32,7 +34,7 @@ from app.services.benchmark_service import (
     save_benchmark_model,
     start_benchmark_analysis,
 )
-from app.services.swing_service import build_chart_config, build_dashboard_summary
+from app.services.swing_service import build_dashboard_summary
 from app.services.user_service import authenticate_user, create_user, transfer_guest_data
 
 main_bp = Blueprint("main", __name__)
@@ -53,6 +55,58 @@ def _store_uploaded_video(video_file, prefix):
         saved_path.unlink(missing_ok=True)
         raise
     return filename, saved_path
+
+
+def _trim_video(source_path, start_seconds, end_seconds):
+    """Trim to an MP4 clip using argv-based ffmpeg invocation (no shell parsing)."""
+    probe = subprocess.run(
+        [
+            "ffprobe", "-v", "error", "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1", str(source_path),
+        ],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    try:
+        source_duration = float(probe.stdout.strip())
+    except ValueError as error:
+        raise ValueError("動画の長さを読み取れませんでした。") from error
+
+    if (
+        not math.isfinite(start_seconds)
+        or not math.isfinite(end_seconds)
+        or start_seconds < 0
+        or end_seconds <= start_seconds
+        or end_seconds > source_duration + 0.1
+    ):
+        raise ValueError("トリミング範囲が動画の長さを超えています。")
+
+    if start_seconds <= 0.01 and end_seconds >= source_duration - 0.1:
+        return source_path
+
+    trimmed_path = source_path.with_name(f"{source_path.stem}_trimmed.mp4")
+    clip_duration = min(end_seconds, source_duration) - start_seconds
+    try:
+        subprocess.run(
+            [
+                "ffmpeg", "-loglevel", "error", "-y", "-ss", f"{start_seconds:.3f}",
+                "-i", str(source_path), "-t", f"{clip_duration:.3f}", "-map", "0:v:0",
+                "-map", "0:a?", "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
+                "-c:a", "aac", "-movflags", "+faststart", str(trimmed_path),
+            ],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except Exception:
+        trimmed_path.unlink(missing_ok=True)
+        raise
+    if not trimmed_path.is_file() or trimmed_path.stat().st_size == 0:
+        trimmed_path.unlink(missing_ok=True)
+        raise RuntimeError("トリミング後の動画を作成できませんでした。")
+    source_path.unlink(missing_ok=True)
+    return trimmed_path
 
 
 def _safe_next_url(candidate):
@@ -82,6 +136,12 @@ def serve_video(filename):
     if not target_file.exists():
         return f"Video file not found: {target_file}", 404
     return send_from_directory(str(upload_dir), filename)
+
+
+@main_bp.route("/images/spine_angle.png")
+def spine_angle_image():
+    image_dir = Path(current_app.root_path) / "templates" / "images"
+    return send_from_directory(str(image_dir), "spine_angle.png")
 
 
 @main_bp.route("/api/jobs/<int:job_id>")
@@ -191,17 +251,28 @@ def dashboard():
     normalized_history = [item for item in raw_history if isinstance(item, dict)]
     summary = build_dashboard_summary(normalized_history)
 
-    sorted_history = sorted(normalized_history, key=lambda x: str(x.get("timestamp") or ""))
-    chart_labels = [str(item.get("timestamp") or "")[:10] for item in sorted_history] or ["-"]
-    chart_scores = [item.get("score") or item.get("overall_score") or 0 for item in sorted_history] or [0]
-
     return render_template(
         "dashboard.html",
         summary=summary,
         history=normalized_history,
         trend_text="直近の打撃解析履歴を確認できます。",
-        chart_config=build_chart_config(chart_labels, chart_scores),
     )
+
+
+@main_bp.route("/api/analysis/<int:job_id>/memo", methods=["POST"])
+@csrf_protected
+def save_analysis_memo(job_id):
+    owner_key = current_owner_key()
+    if not get_job_analysis(job_id, owner_key=owner_key):
+        return jsonify({"error": "Analysis not found"}), 404
+
+    payload = request.get_json(silent=True) or {}
+    memo = payload.get("memo")
+    if not isinstance(memo, str) or len(memo) > 4000:
+        return jsonify({"error": "メモは4000文字以内で入力してください。"}), 400
+    if not update_analysis(job_id, {"memo": memo}):
+        return jsonify({"error": "Analysis not found"}), 404
+    return jsonify({"success": True, "memo": memo})
 
 
 @main_bp.route("/upload", methods=["GET", "POST"])
@@ -209,7 +280,6 @@ def dashboard():
 def upload():
     if request.method == "POST":
         title = (request.form.get("title") or "打撃スイング解析").strip()
-        angle = (request.form.get("angle") or "真横 (打者正面側 / サイド)").strip()
         video_file = request.files.get("file")
 
         if not video_file or not video_file.filename:
@@ -218,14 +288,24 @@ def upload():
         saved_path = None
         try:
             filename, saved_path = _store_uploaded_video(video_file, "batting")
+            trim_start = float(request.form.get("trim_start") or 0)
+            trim_end_value = request.form.get("trim_end", "").strip()
+            if trim_end_value:
+                saved_path = _trim_video(saved_path, trim_start, float(trim_end_value))
+                filename = saved_path.name
+            elif trim_start > 0:
+                raise ValueError("トリミング終了位置を指定してください。")
             video_url = f"/videos/{filename}"
             payload = {
                 "title": title,
                 "sport": "野球 (打撃)",
-                "angle": angle,
                 "video_url": video_url,
             }
             saved = save_job_analysis(payload, owner_key=current_owner_key())
+        except ValueError as error:
+            if saved_path:
+                saved_path.unlink(missing_ok=True)
+            return str(error), 400
         except Exception:
             if saved_path:
                 saved_path.unlink(missing_ok=True)
@@ -234,7 +314,7 @@ def upload():
 
         return redirect(url_for("main.analysis", id=saved["id"]))
 
-    return render_template("upload.html", form_options=FORM_OPTIONS)
+    return render_template("upload.html")
 
 
 # お手本一覧画面
@@ -251,7 +331,6 @@ def models():
     return render_template(
         "models.html",
         models=models,
-        form_options=FORM_OPTIONS,
         manageable_model_ids=manageable_model_ids,
         can_contribute=session.get("is_admin") is True or isinstance(session.get("user_id"), int),
     )
@@ -268,7 +347,6 @@ def get_benchmark_models():
 @csrf_protected
 def add_model():
     name = (request.form.get("name") or "").strip()
-    angle = (request.form.get("angle") or "真横 (打者正面側 / サイド)").strip()
     video_file = request.files.get("file")
 
     if not name:
@@ -285,7 +363,6 @@ def add_model():
         benchmark = save_benchmark_model({
             "name": name,
             "sport": "野球 (打撃)",
-            "angle": angle,
             "video_url": f"/videos/{raw_filename}",
             "raw_video_url": f"/videos/{raw_filename}",
             "target_angle": 10.0,

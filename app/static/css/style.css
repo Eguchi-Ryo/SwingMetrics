@@ -1289,6 +1289,144 @@ button, input, select {
   opacity: 1;
 }
 
+.trim-editor {
+  padding: 1.25rem;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+}
+
+.trim-editor h2,
+.memo-card h2 {
+  margin: 0 0 0.5rem;
+  color: #dbeafe;
+  font-size: 1rem;
+}
+
+.trim-editor > p,
+.memo-card > label {
+  display: block;
+  margin: 0 0 0.9rem;
+  color: var(--muted);
+  font-size: 0.8rem;
+  line-height: 1.6;
+}
+
+.trim-editor video {
+  display: block;
+  width: min(100%, 720px);
+  max-height: 420px;
+  margin: 0 auto 1rem;
+  background: #000;
+  border-radius: 0.6rem;
+}
+
+.trim-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.75rem;
+}
+
+.trim-fields label {
+  display: grid;
+  gap: 0.35rem;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.trim-fields input,
+.memo-card textarea {
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  color: var(--text);
+  background: rgba(2, 8, 23, 0.8);
+  border: 1px solid var(--border);
+  border-radius: 0.6rem;
+}
+
+.trim-fields input {
+  width: 9rem;
+}
+
+.memo-card textarea {
+  resize: vertical;
+  line-height: 1.6;
+}
+
+.memo-card .primary-btn {
+  margin-top: 0.75rem;
+}
+
+#memoSaveStatus {
+  margin-left: 0.75rem;
+  color: #86efac;
+  font-size: 0.8rem;
+}
+
+.activity-summary {
+  max-width: 700px;
+  margin-bottom: 1.5rem;
+}
+
+.activity-summary > p {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.metric-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-bottom: 0.35rem;
+}
+
+.spine-angle-metric {
+  margin-bottom: 0.75rem;
+}
+
+.spine-angle-tooltip .tooltip-popup {
+  right: -12px;
+  width: min(360px, calc(100vw - 48px));
+  pointer-events: auto;
+}
+
+.spine-angle-tooltip img {
+  display: block;
+  width: 100%;
+  max-height: 180px;
+  margin: 0.6rem 0;
+  object-fit: contain;
+  background: #0b1220;
+  border-radius: 0.35rem;
+}
+
+.spine-angle-tooltip .tooltip-caveat {
+  color: #cbd5e1;
+  line-height: 1.5;
+}
+
+.tooltip-wrap:focus-within .tooltip-popup,
+.tooltip-wrap.is-open .tooltip-popup {
+  visibility: visible;
+  opacity: 1;
+}
+
+@media (max-width: 640px) {
+  .trim-fields {
+    align-items: stretch;
+  }
+
+  .trim-fields label,
+  .trim-fields input {
+    width: 100%;
+  }
+
+  .spine-angle-tooltip .tooltip-popup {
+    right: -4px;
+  }
+}
+
 /* ツールチップ解説スタイル */
 .tooltip-wrap {
   position: relative;

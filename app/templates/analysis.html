@@ -9,6 +9,7 @@
        data-status="{{ analysis.status | default('completed') }}"
        data-duration-ms="{{ analysis.duration_ms | default(3500) }}"
        data-current-angle="{{ analysis.current_angle | default(10.5) }}"
+      data-csrf-token="{{ csrf_token() }}"
        style="display: none;">
   </div>
   <script id="frames-data" type="application/json">{{ analysis.frames | default([]) | tojson | safe }}</script>
@@ -38,7 +39,6 @@
           <h1>{{ analysis.title }}</h1>
           <div class="badge-row">
             <span class="badge blue">野球 (打撃)</span>
-            <span class="badge green">{{ analysis.angle }}</span>
           </div>
         </div>
       </div>
@@ -128,27 +128,28 @@
         <!-- 右側：打撃メトリクス -->
         <aside class="analysis-right">
           
-          <div class="score-card">
-            <div style="display: flex; align-items: center; justify-content: space-between;">
-              <h2>Batting Quality Score</h2>
-              <div class="tooltip-wrap">
-                <button type="button" class="help-circle-btn" aria-label="スコア算出基準">?</button>
-                <div class="tooltip-popup">
-                  <strong>打撃スコアの算出根拠</strong>
-                  <p>アタックアングル整合度、90度則直交維持率、スイングプレーンの安定度から総合評価しています。</p>
-                </div>
-              </div>
-            </div>
-            <div class="score-display">
-              <span class="score-number">{{ analysis.overall_score | default(85) }}</span>
-              <span class="score-max">/ 100</span>
-            </div>
-          </div>
-
           <div class="metrics-card">
             <h2>インパクト時 打撃幾何学データ</h2>
+            <div class="metric-item spine-angle-metric">
+              <div>
+                <div class="metric-heading">
+                  <span class="metric-label">体幹傾斜</span>
+                  <div class="tooltip-wrap spine-angle-tooltip">
+                    <button type="button" class="help-circle-btn" aria-label="体幹傾斜の説明を表示" aria-expanded="false" aria-controls="spine-angle-tooltip">?</button>
+                    <div class="tooltip-popup" id="spine-angle-tooltip">
+                      <strong>体幹傾斜とは</strong>
+                      <p>肩の中心と腰の中心を結ぶ線が、画像上の垂直線からどれだけ傾いているかを示します。動画の各フレームで算出し、左の表示と時系列グラフに反映します。</p>
+                      <img src="{{ url_for('main.spine_angle_image') }}" alt="構えとインパクト時の体幹の傾きを垂直線と比較した概念図" />
+                      <p class="tooltip-caveat">これは2D映像上の角度です。前傾の向きは区別せず、撮影方向や骨格検出の精度にも影響されます。</p>
+                    </div>
+                  </div>
+                </div>
+                <div class="metric-value">再生中のフレームに表示</div>
+              </div>
+            </div>
             <ul class="metrics-list">
               {% for metric in analysis.metrics %}
+                {% if 'Attack Direction' not in metric.label %}
                 <li class="metric-item">
                   <div>
                     <div style="display: flex; align-items: center; gap: 6px;">
@@ -165,9 +166,18 @@
                     <div class="metric-value">{{ metric.value }} <span class="metric-benchmark">(基準: {{ metric.benchmark }})</span></div>
                   </div>
                 </li>
+                {% endif %}
               {% endfor %}
             </ul>
           </div>
+
+          <section class="metrics-card memo-card" aria-labelledby="memo-title">
+            <h2 id="memo-title">スイングメモ</h2>
+            <label for="analysisMemo">気づきや次回試すことを記録できます（4000文字まで）。</label>
+            <textarea id="analysisMemo" maxlength="4000" rows="6" placeholder="例：始動で肩が開かないようにする">{{ analysis.memo | default('') }}</textarea>
+            <button type="button" class="primary-btn" id="saveMemoBtn">メモを保存</button>
+            <span id="memoSaveStatus" role="status" aria-live="polite"></span>
+          </section>
         </aside>
 
       </div>

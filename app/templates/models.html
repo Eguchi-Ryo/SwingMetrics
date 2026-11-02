@@ -21,7 +21,6 @@
           <article class="card" data-benchmark-id="{{ model.id }}" style="position: relative;">
             <div class="card-media">
               <span class="card-badge">{{ model.sport }}</span>
-              <span class="score-badge">{{ model.angle }}</span>
               
               {% if model.id in manageable_model_ids %}
                 <button 
@@ -68,15 +67,6 @@
         <div style="margin-bottom: 12px;">
           <label style="display: block; font-size: 13px; margin-bottom: 4px; color: #cbd5e1;">お手本名 / 選手名</label>
           <input type="text" name="name" required placeholder="例: プロ基準 レベルスイング" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff;" />
-        </div>
-
-        <div style="margin-bottom: 12px;">
-          <label style="display: block; font-size: 13px; margin-bottom: 4px; color: #cbd5e1;">撮影アングル</label>
-          <select name="angle" style="width: 100%; box-sizing: border-box; padding: 8px 12px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff;">
-            {% for angle in form_options.angles %}
-              <option value="{{ angle }}">{{ angle }}</option>
-            {% endfor %}
-          </select>
         </div>
 
         <div style="margin-bottom: 20px;">

@@ -114,7 +114,6 @@ def test_admin_can_log_in_add_and_delete_benchmark(app):
             data={
                 "csrf_token": csrf,
                 "name": "管理者登録動画",
-                "angle": "真横",
                 "file": (BytesIO(b"example video"), "example.mp4"),
             },
             content_type="multipart/form-data",
@@ -124,6 +123,7 @@ def test_admin_can_log_in_add_and_delete_benchmark(app):
         with app.app_context():
             model = list_benchmark_models()[0]
         assert model["status"] == "completed"
+        assert "angle" not in model
         assert model["target_angle"] == 12.5
         assert model["frames"] == [
             {"frame_index": 0, "spine_angle": 31.0},
@@ -135,6 +135,7 @@ def test_admin_can_log_in_add_and_delete_benchmark(app):
 
         library = client.get("/models")
         assert "管理者登録動画" in library.get_data(as_text=True)
+        assert "撮影アングル" not in library.get_data(as_text=True)
         deleted = client.post(
             f"/api/models/{model['id']}/delete",
             headers={"X-CSRFToken": csrf},

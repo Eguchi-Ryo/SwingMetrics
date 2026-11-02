@@ -22,24 +22,45 @@
           <input id="video-file" name="file" type="file" accept="video/*" style="display: block; margin: 1rem auto 0;" required />
         </div>
 
-        <div class="field">
-          <label for="title">解析タイトル</label>
-          <input id="title" name="title" type="text" value="打撃スイング解析" placeholder="例: レベルスイング軌道確認" />
-        </div>
+        <section id="trim-editor" class="trim-editor" style="display: none; grid-column: 1 / -1;" aria-label="動画トリミング">
+          <h2>解析範囲をトリミング</h2>
+          <p>プレビューを再生・シークし、開始と終了を指定してください。指定範囲だけを解析します。</p>
+          <video id="trim-preview" controls playsinline preload="metadata"></video>
+          <div class="trim-fields">
+            <label>開始位置（秒）
+              <input id="trim-start" name="trim_start" type="number" min="0" step="0.05" value="0" />
+            </label>
+            <button type="button" class="secondary-btn" id="mark-trim-start">現在位置を開始にする</button>
+            <label>終了位置（秒）
+              <input id="trim-end" name="trim_end" type="number" min="0.05" step="0.05" />
+            </label>
+            <button type="button" class="secondary-btn" id="mark-trim-end">現在位置を終了にする</button>
+          </div>
+          <span id="trim-duration" class="chart-note" aria-live="polite"></span>
+        </section>
 
-        <div class="field">
-          <label for="angle">撮影画角 (アングル)</label>
-          <select id="angle" name="angle">
-            {% for angle in form_options.angles %}
-              <option value="{{ angle }}">{{ angle }}</option>
-            {% endfor %}
-          </select>
+        <div class="field" style="text-align: center; grid-column: 1 / -1; margin-top: 20px;">
+          <!-- ラベル（解析タイトル）を下と少し離すために margin-bottom を追加 -->
+          <label for="title" style="display: block; margin-bottom: 12px; color: #fff;">解析タイトル</label>
+          
+          <!-- inputに枠線（border）と文字中央寄せ（text-align: center）を明示的に指定 -->
+          <input id="title" name="title" type="text" placeholder="例: 2025年春季大会" 
+                style="width: 50%; 
+                        text-align: center; 
+                        display: block; 
+                        margin: 0 auto; 
+                        padding: 10px; 
+                        border: 1px solid #555; 
+                        border-radius: 4px; 
+                        background-color: #1a1a2e; 
+                        color: #fff;" />
         </div>
 
         <div class="submit-row" style="grid-column: 1 / -1;">
-          <button type="submit" class="primary-btn">AI打撃解析を開始 (YOLO-Pose)</button>
+          <button type="submit" class="primary-btn">打撃解析を開始</button>
         </div>
       </form>
     </section>
   </main>
+  <script src="{{ url_for('static', filename='js/upload.js') }}"></script>
 {% endblock %}
